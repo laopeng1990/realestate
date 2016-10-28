@@ -1,0 +1,21 @@
+<config>
+    <storage>
+        <redis>
+            <host>124.250.34.63</host>
+            <port>6379</port>
+            <pool>
+                <maxIdle>200</maxIdle>
+                <maxWait>1000</maxWait>
+                <maxTotal>1000</maxTotal>
+                <testOnBorrow>false</testOnBorrow>
+            </pool>
+        </redis>
+    </storage>
+    <providers>
+        <lj>
+            <version>7.1.1</version>
+            <auth>MjAxNjA4MjRfYW5kcm9pZDpkNjczYzRjYjVkYTIzZWNkODA2MjQ0ZmMwY2M3ZTE3YzEwMzFiYWUx</auth>
+            <page-size>20</page-size>
+        </lj>
+    </providers>
+</config>
