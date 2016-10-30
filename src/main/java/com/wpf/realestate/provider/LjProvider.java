@@ -87,7 +87,15 @@ public class LjProvider {
             params.put("limit_count", String.valueOf(count));
             params.put("request_ts", String.valueOf(System.currentTimeMillis() / 1000L));
             JSONObject dataObj = getData(LJ_HOUSE_URL, params, headers);
+            if (dataObj == null) {
+                return null;
+            }
             JSONArray dataArray = dataObj.getJSONArray("list");
+            if (dataArray == null) {
+                LOG.error("null data array offset {} count {} response {}, retry after 1min", offset, count, dataObj);
+                Thread.sleep(60 * 1000);
+                return getHouses(offset, count);
+            }
             int nSize = dataArray.size();
             Map<String, House> houses = new HashMap<>();
             for (int i = 0; i < nSize; ++i) {
@@ -158,7 +166,7 @@ public class LjProvider {
 
     public static void main(String[] args) {
         LjProvider provider = new LjProvider();
-        Map<String, House> houses = provider.getHouses(20, 40);
+        Map<String, House> houses = provider.getHouses(12580, 20);
         int nSize = houses.size();
     }
 }
