@@ -3,8 +3,10 @@ package com.wpf.realestate.storage;
 import com.wpf.realestate.data.House;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
@@ -12,11 +14,13 @@ import java.util.Map;
 /**
  * Created by wenpengfei on 2016/10/28.
  */
+@Repository
 public class HouseRedisDao {
     private static final Logger LOG = LoggerFactory.getLogger(HouseRedisDao.class);
 
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
     public HouseRedisDao(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }

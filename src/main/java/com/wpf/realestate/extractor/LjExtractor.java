@@ -1,5 +1,7 @@
 package com.wpf.realestate.extractor;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.provider.LjProvider;
@@ -15,6 +17,8 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,39 +38,64 @@ public class LjExtractor {
         provider = new LjProvider();
     }
 
-    public void process() {
+    public void run() {
         Integer totalCount = provider.getTotalSize();
+        LOG.info("total count {}", totalCount);
         int pageSize = ConfigUtils.getInt(GlobalConfig.config, GlobalConfig.PROVIDER_LJ_SIZE);
         int offset = 0;
         DateTime dateTime = DateTime.now();
         String date = dateTime.toString(formatter);
-        while (offset < totalCount) {
+        while (true) {
             try {
-                Map<String, House> houses = provider.getHouses(offset, pageSize);
-                if (houses == null) {
-                    LOG.error("error offset {} page size {}", offset, pageSize);
+                JSONObject dataObj = provider.getHouses(offset, pageSize);
+                if (dataObj == null) {
+                    LOG.error("null object offset {} page size {}", offset, pageSize);
                     continue;
                 }
+                Integer hasMore = dataObj.getInteger("has_more_data");
+                JSONArray dataArray = dataObj.getJSONArray("list");
+                if (dataArray == null) {
+                    LOG.error("null data array offset {} count {} response {}, retry after 1min", offset, pageSize, dataObj);
+                    if (hasMore == 0) {
+                        offset += pageSize;
+                    }
+                    continue;
+                }
+                int nSize = dataArray.size();
+                Map<String, House> houses = new HashMap<>();
+                for (int i = 0; i < nSize; ++i) {
+                    JSONObject itemObj = dataArray.getJSONObject(i);
+                    House house = new House();
+                    String houseCode = itemObj.getString("house_code");
+                    house.setId(houseCode);
+                    house.setDesc(itemObj.getString("title"));
+                    house.setCommunityName(itemObj.getString("community_name"));
+                    house.setArea(itemObj.getDouble("area"));
+                    house.setPrice(itemObj.getDouble("price"));
+                    house.setUnitPrice(itemObj.getDouble("unit_price"));
+                    house.setOrientation(itemObj.getString("orientation"));
+                    JSONArray tagArray = itemObj.getJSONArray("tags");
+                    List<String> tagList = new ArrayList<>();
+                    if (tagArray != null) {
+                        int tagSize = tagArray.size();
+                        for (int j = 0; j < tagSize; ++j) {
+                            tagList.add(tagArray.getString(j));
+                        }
+                    }
+                    house.setTags(tagList);
+                    houses.put(houseCode, house);
+                }
                 houseRedisDao.addHouses(date, provider.getSource(), houses);
-                LOG.info("get {} house info", houses.size());
+                LOG.info("get {} house info offset {}", houses.size(), offset);
                 offset += pageSize;
+                if (hasMore == 0) {
+                    LOG.info("has no more houses offset {}", offset);
+                    break;
+                }
             } catch (Exception e) {
                 LOG.error("process while", e);
             }
         }
     }
 
-    public static void main(String[] args) {
-        RedisDBConfig redisDBConfig = new RedisDBConfig();
-        JedisConnectionFactory connectionFactory = redisDBConfig.jedisConnectionFactory();
-        connectionFactory.afterPropertiesSet();
-        RedisTemplate<String, Object> redisTemplate = redisDBConfig.redisTemplate(connectionFactory);
-        redisTemplate.afterPropertiesSet();
-        HouseRedisDao houseRedisDao = new HouseRedisDao(redisTemplate);
-        LjExtractor extractor = new LjExtractor(houseRedisDao);
-        long start = System.currentTimeMillis();
-        extractor.process();
-
-        LOG.info("end for lj process in {} mils", System.currentTimeMillis() - start);
-    }
 }

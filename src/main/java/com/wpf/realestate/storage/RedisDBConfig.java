@@ -4,6 +4,7 @@ import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.util.ConfigUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -15,6 +16,7 @@ import static com.wpf.realestate.common.GlobalConfig.*;
 /**
  * Created by wenpengfei on 2016/10/28.
  */
+@Configuration
 public class RedisDBConfig {
 
     @Bean(name = "jedisConnectionFactory")

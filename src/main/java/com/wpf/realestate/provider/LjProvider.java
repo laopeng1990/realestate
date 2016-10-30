@@ -81,47 +81,14 @@ public class LjProvider {
         return null;
     }
 
-    public Map<String, House> getHouses(int offset, int count) {
+    public JSONObject getHouses(int offset, int count) {
         try {
             params.put("limit_offset", String.valueOf(offset));
             params.put("limit_count", String.valueOf(count));
             params.put("request_ts", String.valueOf(System.currentTimeMillis() / 1000L));
             JSONObject dataObj = getData(LJ_HOUSE_URL, params, headers);
-            if (dataObj == null) {
-                return null;
-            }
-            JSONArray dataArray = dataObj.getJSONArray("list");
-            if (dataArray == null) {
-                LOG.error("null data array offset {} count {} response {}, retry after 1min", offset, count, dataObj);
-                Thread.sleep(60 * 1000);
-                return getHouses(offset, count);
-            }
-            int nSize = dataArray.size();
-            Map<String, House> houses = new HashMap<>();
-            for (int i = 0; i < nSize; ++i) {
-                JSONObject itemObj = dataArray.getJSONObject(i);
-                House house = new House();
-                String houseCode = itemObj.getString("house_code");
-                house.setId(houseCode);
-                house.setDesc(itemObj.getString("title"));
-                house.setCommunityName(itemObj.getString("community_name"));
-                house.setArea(itemObj.getDouble("area"));
-                house.setPrice(itemObj.getDouble("price"));
-                house.setUnitPrice(itemObj.getDouble("unit_price"));
-                house.setOrientation(itemObj.getString("orientation"));
-                JSONArray tagArray = itemObj.getJSONArray("tags");
-                List<String> tagList = new ArrayList<>();
-                if (tagArray != null) {
-                    int tagSize = tagArray.size();
-                    for (int j = 0; j < tagSize; ++j) {
-                        tagList.add(tagArray.getString(j));
-                    }
-                }
-                house.setTags(tagList);
-                houses.put(houseCode, house);
-            }
 
-            return houses;
+            return dataObj;
         } catch (Exception e) {
             LOG.error("getHouses", e);
         }
@@ -166,7 +133,6 @@ public class LjProvider {
 
     public static void main(String[] args) {
         LjProvider provider = new LjProvider();
-        Map<String, House> houses = provider.getHouses(12580, 20);
-        int nSize = houses.size();
+        provider.getHouses(12580, 20);
     }
 }
