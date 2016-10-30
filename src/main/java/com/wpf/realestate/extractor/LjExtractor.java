@@ -56,6 +56,9 @@ public class LjExtractor {
         redisTemplate.afterPropertiesSet();
         HouseRedisDao houseRedisDao = new HouseRedisDao(redisTemplate);
         LjExtractor extractor = new LjExtractor(houseRedisDao);
+        long start = System.currentTimeMillis();
         extractor.process();
+
+        LOG.info("end for lj process in {} mils", System.currentTimeMillis() - start);
     }
 }
