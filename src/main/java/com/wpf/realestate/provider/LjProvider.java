@@ -85,7 +85,7 @@ public class LjProvider {
         try {
             params.put("limit_offset", String.valueOf(offset));
             params.put("limit_count", String.valueOf(count));
-            params.put("request_ts", "1477650340");
+            params.put("request_ts", String.valueOf(System.currentTimeMillis() / 1000L));
             JSONObject dataObj = getData(LJ_HOUSE_URL, params, headers);
             JSONArray dataArray = dataObj.getJSONArray("list");
             int nSize = dataArray.size();

@@ -43,6 +43,10 @@ public class LjExtractor {
         while (offset < totalCount) {
             try {
                 Map<String, House> houses = provider.getHouses(offset, pageSize);
+                if (houses == null) {
+                    LOG.error("error offset {} page size {}", offset, pageSize);
+                    continue;
+                }
                 houseRedisDao.addHouses(date, provider.getSource(), houses);
                 LOG.info("get {} house info", houses.size());
                 offset += pageSize;
