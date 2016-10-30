@@ -102,10 +102,12 @@ public class LjProvider {
                 house.setUnitPrice(itemObj.getDouble("unit_price"));
                 house.setOrientation(itemObj.getString("orientation"));
                 JSONArray tagArray = itemObj.getJSONArray("tags");
-                int tagSize = tagArray.size();
                 List<String> tagList = new ArrayList<>();
-                for (int j = 0; j < tagSize; ++j) {
-                    tagList.add(tagArray.getString(j));
+                if (tagArray != null) {
+                    int tagSize = tagArray.size();
+                    for (int j = 0; j < tagSize; ++j) {
+                        tagList.add(tagArray.getString(j));
+                    }
                 }
                 house.setTags(tagList);
                 houses.put(houseCode, house);
