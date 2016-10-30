@@ -41,10 +41,14 @@ public class LjExtractor {
         DateTime dateTime = DateTime.now();
         String date = dateTime.toString(formatter);
         while (offset < totalCount) {
-            Map<String, House> houses = provider.getHouses(offset, pageSize);
-            houseRedisDao.addHouses(date, provider.getSource(), houses);
-            LOG.info("get {} house info", houses.size());
-            offset += pageSize;
+            try {
+                Map<String, House> houses = provider.getHouses(offset, pageSize);
+                houseRedisDao.addHouses(date, provider.getSource(), houses);
+                LOG.info("get {} house info", houses.size());
+                offset += pageSize;
+            } catch (Exception e) {
+                LOG.error("process while", e);
+            }
         }
     }
 
