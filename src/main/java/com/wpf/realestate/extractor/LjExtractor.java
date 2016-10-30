@@ -51,7 +51,9 @@ public class LjExtractor {
     public static void main(String[] args) {
         RedisDBConfig redisDBConfig = new RedisDBConfig();
         JedisConnectionFactory connectionFactory = redisDBConfig.jedisConnectionFactory();
+        connectionFactory.afterPropertiesSet();
         RedisTemplate<String, Object> redisTemplate = redisDBConfig.redisTemplate(connectionFactory);
+        redisTemplate.afterPropertiesSet();
         HouseRedisDao houseRedisDao = new HouseRedisDao(redisTemplate);
         LjExtractor extractor = new LjExtractor(houseRedisDao);
         extractor.process();

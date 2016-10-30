@@ -1,7 +1,7 @@
 <config>
     <storage>
         <redis>
-            <host>192.168.0.107</host>
+            <host>124.250.34.63</host>
             <port>6379</port>
             <pool>
                 <maxIdle>200</maxIdle>

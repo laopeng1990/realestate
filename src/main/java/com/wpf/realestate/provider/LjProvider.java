@@ -3,10 +3,10 @@ package com.wpf.realestate.provider;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.sun.xml.internal.bind.v2.runtime.property.StructureLoaderBuilder;
 import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
+import com.wpf.realestate.util.AuthUtils;
 import com.wpf.realestate.util.ConfigUtils;
 import com.wpf.realestate.util.http.HttpMethod;
 import com.wpf.realestate.util.http.HttpRequestBuilder;
@@ -55,8 +55,6 @@ public class LjProvider {
         headers.put("User-Agent", "HomeLink7.1.1;Coolpad Coolpad+8297; Android 4.4.2");
         String version = ConfigUtils.getString(GlobalConfig.config, GlobalConfig.PROVIDER_LJ_VERSION);
         headers.put("Lianjia-Version", version);
-        String auth = ConfigUtils.getString(GlobalConfig.config, GlobalConfig.PROVIDER_LJ_AUTH);
-        headers.put("Authorization", auth);
         headers.put("Host", "app.api.lianjia.com");
         headers.put("Lianjia-Device-Id", "863777022100258");
         headers.put("Connection", "Keep-Alive");
@@ -71,7 +69,7 @@ public class LjProvider {
         try {
             params.put("limit_offset", "0");
             params.put("limit_count", "20");
-            params.put("request_ts", "1477650340");
+            params.put("request_ts", String.valueOf(System.currentTimeMillis() / 1000L));
             JSONObject dataObj = getData(LJ_HOUSE_URL, params, headers);
             Integer totalCount = dataObj.getInteger("total_count");
 
@@ -124,6 +122,8 @@ public class LjProvider {
     private JSONObject getData(String url, Map<String, String> params, Map<String, String> headers) {
         try {
             String response = null;
+            String auth = AuthUtils.build(params);
+            headers.put("Authorization", auth);
             HttpRequestBuilder requestBuilder = new HttpRequestBuilder(HttpMethod.HTTP_GET, url).params(params).headers(headers);
             for (int i = 0; i < 3; ++i) {
                 try {
@@ -155,5 +155,8 @@ public class LjProvider {
     }
 
     public static void main(String[] args) {
+        LjProvider provider = new LjProvider();
+        Map<String, House> houses = provider.getHouses(20, 40);
+        int nSize = houses.size();
     }
 }

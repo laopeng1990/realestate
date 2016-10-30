@@ -23,8 +23,9 @@ public class GlobalConfig {
 
     //lj
     public static final String PROVIDER_LJ_VERSION = "providers.lj.version";
-    public static final String PROVIDER_LJ_AUTH = "providers.lj.auth";
     public static final String PROVIDER_LJ_SIZE = "providers.lj.page-size";
+    public static final String PROVIDER_LJ_APPID = "providers.lj.app-id";
+    public static final String PROVIDER_LJ_APPSECRET = "providers.lj.app-secret";
 
     static {
         try {

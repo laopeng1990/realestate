@@ -220,5 +220,13 @@
             <artifactId>jsoup</artifactId>
             <version>1.8.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.wpf.homelink</groupId>
+            <artifactId>homelinkndk</artifactId>
+            <version>v1</version>
+            <classifier>homelink</classifier>
+            <scope>runtime</scope>
+            <type>so</type>
+        </dependency>
     </dependencies>
 </project>

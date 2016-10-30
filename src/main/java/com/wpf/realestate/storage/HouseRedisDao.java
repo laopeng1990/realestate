@@ -34,4 +34,20 @@ public class HouseRedisDao {
             LOG.error("addHouses", e);
         }
     }
+
+    public Map<String, Object> getHouses(String date, String source) {
+        if (date == null || source == null) {
+            return null;
+        }
+
+        try {
+            String key = date + ":" + source;
+            BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
+            return hashOps.entries();
+        } catch (Exception e) {
+            LOG.error("getHouses", e);
+        }
+
+        return null;
+    }
 }
