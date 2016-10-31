@@ -3,6 +3,7 @@ package com.wpf.realestate.extractor;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConfig;
+import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.provider.LjProvider;
 import com.wpf.realestate.storage.HouseRedisDao;
@@ -74,6 +75,7 @@ public class LjExtractor {
                     house.setPrice(itemObj.getDouble("price"));
                     house.setUnitPrice(itemObj.getDouble("unit_price"));
                     house.setOrientation(itemObj.getString("orientation"));
+                    house.setSource(GlobalConsts.LIANJIA_SOURCE);
                     JSONArray tagArray = itemObj.getJSONArray("tags");
                     List<String> tagList = new ArrayList<>();
                     if (tagArray != null) {

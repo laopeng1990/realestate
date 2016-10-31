@@ -22,6 +22,7 @@ public class GlobalConfig {
     public static final String REDIS_HOST = "storage.redis.host";
     public static final String REDIS_PORT = "storage.redis.port";
     public static final String REDIS_AUTH = "storage.redis.auth";
+    public static final String REDIS_DBINDEX = "storage.redis.dbIndex";
     public static final String REDIS_POOL_MAXIDLE = "storage.redis.pool.maxIdle";
     public static final String REDIS_POOL_MAXWAIT = "storage.redis.pool.maxWait";
     public static final String REDIS_POOL_MAXTOTAL = "storage.redis.pool.maxTotal";

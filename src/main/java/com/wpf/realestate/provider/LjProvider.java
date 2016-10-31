@@ -101,7 +101,8 @@ public class LjProvider {
             String response = null;
             String auth = AuthUtils.build(params);
             headers.put("Authorization", auth);
-            HttpRequestBuilder requestBuilder = new HttpRequestBuilder(HttpMethod.HTTP_GET, url).params(params).headers(headers);
+            HttpRequestBuilder requestBuilder = new HttpRequestBuilder(HttpMethod.HTTP_GET, url).params(params)
+                    .headers(headers).connectTimeout(2000).readTimeout(2000);
             for (int i = 0; i < 3; ++i) {
                 try {
                     Thread.sleep(1000);

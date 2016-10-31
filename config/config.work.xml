@@ -3,6 +3,7 @@
         <redis>
             <host>124.250.34.63</host>
             <port>6379</port>
+            <dbIndex>3</dbIndex>
             <pool>
                 <maxIdle>200</maxIdle>
                 <maxWait>1000</maxWait>
@@ -23,7 +24,7 @@
         <task>
             <name>ljTask</name>
             <enable>true</enable>
-            <startNow>true</startNow>
+            <startNow>false</startNow>
             <day>0</day>
             <hour>22</hour>
             <minute>0</minute>

@@ -3,6 +3,7 @@
         <redis>
             <host>192.168.0.107</host>
             <port>6379</port>
+            <dbIndex>0</dbIndex>
             <pool>
                 <maxIdle>200</maxIdle>
                 <maxWait>1000</maxWait>

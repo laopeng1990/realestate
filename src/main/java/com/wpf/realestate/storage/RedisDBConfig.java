@@ -36,6 +36,8 @@ public class RedisDBConfig {
         factory.setPort(ConfigUtils.getInt(GlobalConfig.config, REDIS_PORT));
         factory.setPoolConfig(poolConfig);
         factory.setUsePool(true);
+        int dbIndex = ConfigUtils.getInt(GlobalConfig.config, REDIS_DBINDEX);
+        factory.setDatabase(dbIndex);
         String auth = ConfigUtils.getString(GlobalConfig.config, REDIS_AUTH);
         if (auth != null && !auth.isEmpty()) {
             factory.setPassword(auth);
