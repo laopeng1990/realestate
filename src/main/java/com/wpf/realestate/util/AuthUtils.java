@@ -1,8 +1,6 @@
 package com.wpf.realestate.util;
 
 import com.wpf.realestate.common.GlobalConfig;
-import javafx.beans.binding.StringBinding;
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
