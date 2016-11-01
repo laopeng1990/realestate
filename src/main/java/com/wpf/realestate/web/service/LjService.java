@@ -14,8 +14,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by wenpengfei on 2016/10/31.
@@ -74,6 +73,24 @@ public class LjService {
                 }
             }
 
+            Collections.sort(downArray, new Comparator<Object>() {
+                @Override
+                public int compare(Object o1, Object o2) {
+                    Double dVal1 = ((JSONObject)o1).getDouble("changes");
+                    Double dVal2 = ((JSONObject)o2).getDouble("changes");
+                    return dVal1.compareTo(dVal2);
+                }
+            });
+
+            Collections.sort(upArray, new Comparator<Object>() {
+                @Override
+                public int compare(Object o1, Object o2) {
+                    Double dVal1 = ((JSONObject)o1).getDouble("changes");
+                    Double dVal2 = ((JSONObject)o2).getDouble("changes");
+                    return dVal2.compareTo(dVal1);
+                }
+            });
+
             JSONObject resObj = new JSONObject();
             resObj.put("intersect", nIntersectSize);
             resObj.put("unchanged", unchangedSize);
@@ -98,7 +115,7 @@ public class LjService {
         HouseRedisDao redisDao = new HouseRedisDao(redisTemplate);
         LjService service = new LjService(redisDao);
         Date startDate = dateFormat.parse("2016-10-30");
-        Date endDate = dateFormat.parse("2016-10-31");
+        Date endDate = dateFormat.parse("2016-11-01");
         JSONObject resObj = service.priceChanges(startDate, endDate);
         LOG.info("{}", resObj);
     }
