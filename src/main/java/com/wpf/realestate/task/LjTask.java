@@ -2,10 +2,7 @@ package com.wpf.realestate.task;
 
 import com.wpf.realestate.extractor.LjExtractor;
 import com.wpf.realestate.storage.HouseRedisDao;
-import com.wpf.realestate.storage.RedisDBConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 /**
