@@ -1,5 +1,7 @@
 package com.wpf.realestate.data;
 
+import com.alibaba.fastjson.JSON;
+
 import java.util.List;
 
 /**
@@ -106,5 +108,10 @@ public class House {
 
     public void setOrientation(String orientation) {
         this.orientation = orientation;
+    }
+
+    @Override
+    public String toString() {
+        return JSON.toJSONString(this);
     }
 }

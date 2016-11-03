@@ -30,7 +30,7 @@ public class HouseRedisDao {
         this.redisTemplate = redisTemplate;
     }
 
-    public void addHouses(String date, String source, Map<String, House> houses) {
+    public void addHouses(String date, String source, Map<String, String> houses) {
         if (date == null || source == null || houses == null) {
             return;
         }
@@ -68,7 +68,7 @@ public class HouseRedisDao {
         try {
             String key = GlobalConsts.DAY_STATISTICS + ":" + source;
             BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
-            hashOps.put(date, dayData);
+            hashOps.put(date, dayData.toString());
         } catch (Exception e) {
             LOG.error("addStatistics", e);
         }

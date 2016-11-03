@@ -1,5 +1,7 @@
 package com.wpf.realestate.data;
 
+import com.alibaba.fastjson.JSON;
+
 /**
  * Created by laopengwork on 2016/10/30.
  */
@@ -144,5 +146,10 @@ public class LjDayData {
 
     public void setCustomAmount(Integer customAmount) {
         this.customAmount = customAmount;
+    }
+
+    @Override
+    public String toString() {
+        return JSON.toJSONString(this);
     }
 }

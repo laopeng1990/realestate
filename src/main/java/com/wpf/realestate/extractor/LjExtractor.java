@@ -78,7 +78,7 @@ public class LjExtractor {
                     continue;
                 }
                 int nSize = dataArray.size();
-                Map<String, House> houses = new HashMap<>();
+                Map<String, String> houses = new HashMap<>();
                 for (int i = 0; i < nSize; ++i) {
                     JSONObject itemObj = dataArray.getJSONObject(i);
                     House house = new House();
@@ -100,7 +100,7 @@ public class LjExtractor {
                         }
                     }
                     house.setTags(tagList);
-                    houses.put(houseCode, house);
+                    houses.put(houseCode, house.toString());
                 }
                 houseRedisDao.addHouses(date, provider.getSource(), houses);
                 LOG.info("get {} house info offset {}", houses.size(), offset);
