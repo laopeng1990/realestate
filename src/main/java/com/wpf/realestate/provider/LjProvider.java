@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.common.GlobalConsts;
-import com.wpf.realestate.data.House;
+import com.wpf.realestate.data.LjDayData;
 import com.wpf.realestate.util.AuthUtils;
 import com.wpf.realestate.util.ConfigUtils;
 import com.wpf.realestate.util.http.HttpMethod;
@@ -13,9 +13,7 @@ import com.wpf.realestate.util.http.HttpRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,28 +24,40 @@ public class LjProvider {
 
     private static final String LJ_HOUSE_URL = "http://app.api.lianjia.com/house/ershoufang/searchv3";
 
-    private Map<String, String> params;
+    private static final String LJ_STATISTICS_URL = "http://app.api.lianjia.com/house/fangjia/search";
+
+    private Map<String, String> houseInfoParams;
+
+    private Map<String, String> houseStatisticsParam;
 
     private Map<String, String> headers;
 
     public LjProvider() {
-        buildParams();
+        buildHouseInfoParams();
+        buildStatisticsParams();
         buildHeaders();
     }
 
-    private void buildParams() {
-        params = new HashMap<>();
-        params.put("isFromMap", "false");
-        params.put("city_id", "110000");
-        params.put("is_suggestion", "0");
-        params.put("roomRequest", "");
-        params.put("moreRequest", "");
-        params.put("communityRequset", "");
-        params.put("condition", "");
-        params.put("priceRequest", "");
-        params.put("areaRequest", "");
-        params.put("is_history", "0");
-        params.put("sugQueryStr", "");
+    private void buildHouseInfoParams() {
+        houseInfoParams = new HashMap<>();
+        houseInfoParams.put("isFromMap", "false");
+        houseInfoParams.put("city_id", "110000");
+        houseInfoParams.put("is_suggestion", "0");
+        houseInfoParams.put("roomRequest", "");
+        houseInfoParams.put("moreRequest", "");
+        houseInfoParams.put("communityRequset", "");
+        houseInfoParams.put("condition", "");
+        houseInfoParams.put("priceRequest", "");
+        houseInfoParams.put("areaRequest", "");
+        houseInfoParams.put("is_history", "0");
+        houseInfoParams.put("sugQueryStr", "");
+    }
+
+    private void buildStatisticsParams() {
+        houseStatisticsParam = new HashMap<>();
+        houseStatisticsParam.put("city_id", "110000");
+        houseStatisticsParam.put("is_format_price", "1");
+        houseStatisticsParam.put("is_get_new_bd", "1");
     }
 
     private void buildHeaders() {
@@ -67,10 +77,9 @@ public class LjProvider {
 
     public Integer getTotalSize() {
         try {
-            params.put("limit_offset", "0");
-            params.put("limit_count", "20");
-            params.put("request_ts", String.valueOf(System.currentTimeMillis() / 1000L));
-            JSONObject dataObj = getData(LJ_HOUSE_URL, params, headers);
+            houseInfoParams.put("limit_offset", "0");
+            houseInfoParams.put("limit_count", "20");
+            JSONObject dataObj = getData(LJ_HOUSE_URL, houseInfoParams, headers);
             Integer totalCount = dataObj.getInteger("total_count");
 
             return totalCount;
@@ -83,10 +92,9 @@ public class LjProvider {
 
     public JSONObject getHouses(int offset, int count) {
         try {
-            params.put("limit_offset", String.valueOf(offset));
-            params.put("limit_count", String.valueOf(count));
-            params.put("request_ts", String.valueOf(System.currentTimeMillis() / 1000L));
-            JSONObject dataObj = getData(LJ_HOUSE_URL, params, headers);
+            houseInfoParams.put("limit_offset", String.valueOf(offset));
+            houseInfoParams.put("limit_count", String.valueOf(count));
+            JSONObject dataObj = getData(LJ_HOUSE_URL, houseInfoParams, headers);
 
             return dataObj;
         } catch (Exception e) {
@@ -96,9 +104,58 @@ public class LjProvider {
         return null;
     }
 
+    public LjDayData getStatistics() {
+        try {
+            JSONObject dataObj = getData(LJ_STATISTICS_URL, houseStatisticsParam, headers);
+            LjDayData dayData = new LjDayData();
+            JSONObject cardObj = dataObj.getJSONObject("card");
+            if (cardObj != null) {
+                Integer daySales = cardObj.getInteger("transAmount");
+                dayData.setDaySales(daySales);
+                Integer showAmount = cardObj.getInteger("showAmount");
+                dayData.setShowAmount(showAmount);
+                Double ratio = cardObj.getDouble("ratio");
+                dayData.setRatio(ratio);
+                String month = cardObj.getString("month");
+                dayData.setMonth(month);
+                Integer tradeCount = cardObj.getInteger("tradeCount");
+                dayData.setTradeCount(tradeCount);
+                Integer monthTrans = cardObj.getInteger("monthTrans");
+                dayData.setMonthTrans(monthTrans);
+                Double dealMonthRatio = cardObj.getDouble("dealMonthRatio");
+                dayData.setDealMonthRatio(dealMonthRatio);
+                Double dealYearRatio = cardObj.getDouble("dealYearRatio");
+                dayData.setDealYearRatio(dealYearRatio);
+                Double momRatio = cardObj.getDouble("momRatio");
+                dayData.setMomRatio(momRatio);
+                Double momShow = cardObj.getDouble("momShow");
+                dayData.setMomShow(momShow);
+                Double momQuantity = cardObj.getDouble("momQuantity");
+                dayData.setMomQuantity(momQuantity);
+                Integer houseAmount = cardObj.getInteger("houseAmount");
+                dayData.setHouseAmount(houseAmount);
+                Double momHouse = cardObj.getDouble("momHouse");
+                dayData.setMomHouse(momHouse);
+            }
+            JSONObject supplyDemandTrend = dataObj.getJSONObject("supply_demand_trend");
+            JSONObject dayObj = supplyDemandTrend.getJSONObject("day");
+            JSONArray customerAmountArray = dayObj.getJSONArray("customerAmount");
+            int nSize = customerAmountArray.size();
+            Integer customerAmount = customerAmountArray.getInteger(nSize - 1);
+            dayData.setCustomAmount(customerAmount);
+
+            return dayData;
+        } catch (Exception e) {
+            LOG.error("getStatistics", e);
+        }
+
+        return null;
+    }
+
     private JSONObject getData(String url, Map<String, String> params, Map<String, String> headers) {
         try {
             String response = null;
+            params.put("request_ts", String.valueOf(System.currentTimeMillis() / 1000L));
             String auth = AuthUtils.build(params);
             headers.put("Authorization", auth);
             HttpRequestBuilder requestBuilder = new HttpRequestBuilder(HttpMethod.HTTP_GET, url).params(params)

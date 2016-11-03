@@ -1,5 +1,6 @@
 package com.wpf.realestate.web.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConsts;
@@ -9,8 +10,10 @@ import com.wpf.realestate.storage.RedisDBConfig;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -19,14 +22,16 @@ import java.util.*;
 /**
  * Created by wenpengfei on 2016/10/31.
  */
-public class LjService {
-    private static final Logger LOG = LoggerFactory.getLogger(LjService.class);
+@Service
+public class PriceChangeService {
+    private static final Logger LOG = LoggerFactory.getLogger(PriceChangeService.class);
 
     private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     private HouseRedisDao houseRedisDao;
 
-    public LjService(HouseRedisDao houseRedisDao) {
+    @Autowired
+    public PriceChangeService(HouseRedisDao houseRedisDao) {
         this.houseRedisDao = houseRedisDao;
     }
 
@@ -48,12 +53,10 @@ public class LjService {
                     continue;
                 }
                 nIntersectSize++;
-                Map<String, Object> startItemMap = (Map<String, Object>)startHouseMap.get(houseId);
-                House startHouse = new House();
-                BeanUtils.populate(startHouse, startItemMap);
-                Map<String, Object> endItemMap = (Map<String, Object>)endHouseMap.get(houseId);
-                House endHouse = new House();
-                BeanUtils.populate(endHouse, endItemMap);
+                String startItemStr = (String)startHouseMap.get(houseId);
+                House startHouse = JSON.parseObject(startItemStr, House.class);
+                String endItemStr = (String)endHouseMap.get(houseId);
+                House endHouse = JSON.parseObject(endItemStr, House.class);
                 if (startHouse.getPrice().equals(endHouse.getPrice())) {
                     unchangedSize++;
                     continue;
@@ -113,7 +116,7 @@ public class LjService {
         RedisTemplate<String, Object> redisTemplate = dbConfig.redisTemplate(connectionFactory);
         redisTemplate.afterPropertiesSet();
         HouseRedisDao redisDao = new HouseRedisDao(redisTemplate);
-        LjService service = new LjService(redisDao);
+        PriceChangeService service = new PriceChangeService(redisDao);
         Date startDate = dateFormat.parse("2016-10-30");
         Date endDate = dateFormat.parse("2016-11-01");
         JSONObject resObj = service.priceChanges(startDate, endDate);

@@ -1,10 +1,12 @@
 package com.wpf.realestate.extractor;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
+import com.wpf.realestate.data.LjDayData;
 import com.wpf.realestate.provider.LjProvider;
 import com.wpf.realestate.storage.HouseRedisDao;
 import com.wpf.realestate.storage.RedisDBConfig;
@@ -40,6 +42,19 @@ public class LjExtractor {
     }
 
     public void run() {
+        processStatistics();
+        processHouseInfos();
+    }
+
+    public void processStatistics() {
+        LjDayData dayData = provider.getStatistics();
+        DateTime dateTime = DateTime.now();
+        String date = dateTime.toString(formatter);
+        houseRedisDao.addStatistics(date, provider.getSource(), dayData);
+        LOG.info("{} statistics data {}", date, JSON.toJSONString(dayData));
+    }
+
+    public void processHouseInfos() {
         Integer totalCount = provider.getTotalSize();
         LOG.info("total count {}", totalCount);
         int pageSize = ConfigUtils.getInt(GlobalConfig.config, GlobalConfig.PROVIDER_LJ_SIZE);

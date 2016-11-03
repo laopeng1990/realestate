@@ -13,4 +13,6 @@ public class GlobalConsts {
     public static final String GLOBAL_UTF8 = "utf8";
     //lian jia
     public static final String LIANJIA_SOURCE = "lj";
+    //statistics
+    public static final String DAY_STATISTICS = "day_statistics";
 }
