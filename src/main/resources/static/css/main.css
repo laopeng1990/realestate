@@ -1,0 +1,19 @@
+body {
+    padding-top: 70px;
+    padding-bottom: 70px;
+}
+
+div#main {
+    padding-left:6%;
+    padding-right:6%
+}
+
+div#selector {
+    width:20%;
+    float:left;
+}
+
+div#list {
+    width:80%;
+    float:right;
+}
