@@ -9,11 +9,12 @@ div#main {
 }
 
 div#selector {
-    width:20%;
+    width:8%;
+    margin-right:10px;
     float:left;
 }
 
 div#list {
-    width:80%;
+    width:92%;
     float:right;
 }

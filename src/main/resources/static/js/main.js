@@ -1,4 +1,13 @@
 var myApp=angular.module('houseApp', ['ngRoute']);
+myApp.filter("housePrice", function() {
+    return function(input) {
+        return input / 10000 + "万";
+    };
+}).filter("unitPrice", function() {
+    return function(input) {
+        return input + "元";
+    };
+});
 myApp.controller('rootCtrl', function() {
 
 }).config(function($routeProvider) {
@@ -23,6 +32,7 @@ myApp.controller('pricesChange', function($scope, $http) {
     $scope.menuType = 'prices';
     $http.get("/prices/changes")
         .success(function(res) {
+            $scope.size = res.size;
             $scope.items = res.items;
         });
 });

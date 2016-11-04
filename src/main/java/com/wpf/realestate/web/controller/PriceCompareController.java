@@ -1,6 +1,5 @@
 package com.wpf.realestate.web.controller;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.web.service.PriceChangeService;
 import org.joda.time.DateTime;
@@ -24,19 +23,12 @@ public class PriceCompareController {
     @ResponseBody
     public JSONObject getPricesChanges(@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime startDate,
                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime endDate) {
-        JSONObject obj = new JSONObject();
-        obj.put("size", 20);
-        JSONArray array = new JSONArray();
-        for (int i = 0; i < 10; ++i) {
-            JSONObject item = new JSONObject();
-            item.put("id", i);
-            item.put("location", "test");
-            item.put("startPrice", i * 100);
-            item.put("endPrice", (i + 1) * 100);
-            item.put("unitChange", i / 10);
-            array.add(item);
+        if (endDate == null) {
+            endDate = DateTime.now().minusDays(1);
         }
-        obj.put("items", array);
-        return obj;
+        if (startDate == null) {
+            startDate = endDate.minusDays(1);
+        }
+        return priceChangeService.priceChanges(startDate, endDate);
     }
 }
