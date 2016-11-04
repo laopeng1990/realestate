@@ -1,0 +1,24 @@
+<html>
+<head>
+    <meta charset="utf8"/>
+    <title>
+        Welcome!
+    </title>
+    <link href="http://lib.sinaapp.com/js/bootstrap/v3.0.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/main.css" rel="stylesheet" />
+</head>
+
+<body ng-app="houseApp" ng-controller="rootCtrl">
+    <div ng-include="'navbar.html'">
+    </div>
+    <div ng-view id="main">
+    </div>
+    <div id="footer">
+
+    </div>
+
+    <script src="http://lib.sinaapp.com/js/angular.js/angular-1.2.19/angular.min.js" ></script>
+    <script src="http://lib.sinaapp.com/js/angular.js/angular-1.2.19/angular-route.min.js" ></script>
+    <script src="/js/main.js" ></script>
+</body>
+</html>

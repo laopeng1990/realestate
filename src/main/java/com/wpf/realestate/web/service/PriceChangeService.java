@@ -8,6 +8,9 @@ import com.wpf.realestate.data.House;
 import com.wpf.realestate.storage.HouseRedisDao;
 import com.wpf.realestate.storage.RedisDBConfig;
 import org.apache.commons.beanutils.BeanUtils;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +29,7 @@ import java.util.*;
 public class PriceChangeService {
     private static final Logger LOG = LoggerFactory.getLogger(PriceChangeService.class);
 
-    private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     private HouseRedisDao houseRedisDao;
 
@@ -35,10 +38,10 @@ public class PriceChangeService {
         this.houseRedisDao = houseRedisDao;
     }
 
-    public JSONObject priceChanges(Date startDate, Date endDate) {
+    public JSONObject priceChanges(DateTime startDate, DateTime endDate) {
         try {
-            String startDateStr = dateFormat.format(startDate);
-            String endDateStr = dateFormat.format(endDate);
+            String startDateStr = startDate.toString(dateFormat);
+            String endDateStr = endDate.toString(dateFormat);
             Map<String, Object> startHouseMap = houseRedisDao.getHouses(startDateStr, GlobalConsts.LIANJIA_SOURCE);
             Map<String, Object> endHouseMap = houseRedisDao.getHouses(endDateStr, GlobalConsts.LIANJIA_SOURCE);
             JSONArray upArray = new JSONArray();
@@ -117,8 +120,8 @@ public class PriceChangeService {
         redisTemplate.afterPropertiesSet();
         HouseRedisDao redisDao = new HouseRedisDao(redisTemplate);
         PriceChangeService service = new PriceChangeService(redisDao);
-        Date startDate = dateFormat.parse("2016-10-30");
-        Date endDate = dateFormat.parse("2016-11-01");
+        DateTime startDate = dateFormat.parseDateTime("2016-10-30");
+        DateTime endDate = dateFormat.parseDateTime("2016-11-01");
         JSONObject resObj = service.priceChanges(startDate, endDate);
         LOG.info("{}", resObj);
     }

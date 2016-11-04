@@ -9,17 +9,13 @@ import com.wpf.realestate.data.House;
 import com.wpf.realestate.data.LjDayData;
 import com.wpf.realestate.provider.LjProvider;
 import com.wpf.realestate.storage.HouseRedisDao;
-import com.wpf.realestate.storage.RedisDBConfig;
 import com.wpf.realestate.util.ConfigUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

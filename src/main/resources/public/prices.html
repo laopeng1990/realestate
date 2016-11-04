@@ -1,0 +1,24 @@
+<div id="selector" ng-include="'pricesMenu.html'">
+</div>
+<div id="list">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th class="col-sm-1 text-center">id</th>
+                <th class="col-sm-1 text-center">位置</th>
+                <th class="col-sm-1">起始价格</th>
+                <th class="col-sm-1">终止价格</th>
+                <th class="col-sm-1">单位变化</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="item in items">
+                <td class="text-center">{{item.id}}</td>
+                <td class="text-center">{{item.location}}</td>
+                <td>{{item.startPrice}}</td>
+                <td>{{item.endPrice}}</td>
+                <td>{{item.unitChange}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

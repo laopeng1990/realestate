@@ -1,4 +1,4 @@
-<div id="header" th:fragment="navbar" >
+<div id="header">
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div>
             <div class="navbar-header">
@@ -8,11 +8,11 @@
             </div>
             <div class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    <li ng-class="{active:isPage('home')}">
-                        <a href="/prices">Tab1</a>
+                    <li ng-class="{active:isPage('prices')}">
+                        <a href="#/prices">Tab1</a>
                     </li>
-                    <li ng-class="{active:isPage('posts')||isPage('postDetail')}" ng-show="isShow('community')">
-                        <a href="/statistics">Tab2</a>
+                    <li ng-class="{active:isPage('statistics')}">
+                        <a href="#/statistics">Tab2</a>
                     </li>
                 </ul>
             </div>
