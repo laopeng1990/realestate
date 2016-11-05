@@ -29,7 +29,7 @@ public class RedisOptimize {
     public void process() {
         try {
             DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd");
-            DateTime dateTime = dateTimeFormatter.parseDateTime("2016-10-30");
+            DateTime dateTime = dateTimeFormatter.parseDateTime("2016-10-31");
             while (true) {
                 String dateStr = dateTime.toString(dateTimeFormatter);
                 String key = dateStr + ":lj";

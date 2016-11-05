@@ -1,29 +1,66 @@
-<div id="selector" ng-include="'pricesMenu.html'">
+<div class="col-sm-2">
+    <div  ng-include="'pricesMenu.html'">
+    </div>
 </div>
-<div id="list">
-    <h3><span class="label label-default">{{size}}个降价房源</span></h3>
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th class="col-sm-1 text-center">id</th>
-                <th class="col-sm-1 text-center">描述</th>
-                <th class="col-sm-1">小区</th>
-                <th class="col-sm-1">起始日期价格</th>
-                <th class="col-sm-1">终止日期价格</th>
-                <th class="col-sm-1">总计变化</th>
-                <th class="col-sm-1">每平米价格变化</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr ng-repeat="item in items">
-                <td class="text-center"><a target="_blank" href="http://bj.lianjia.com/ershoufang/{{item.id}}.html">{{item.id}}</a></td>
-                <td class="text-center">{{item.desc}}</td>
-                <td>{{item.community}}</td>
-                <td>{{item.startPrice | housePrice}}</td>
-                <td>{{item.endPrice | housePrice}}</td>
-                <td>{{item.changes | housePrice}}</td>
-                <td>{{item.unitChanges | unitPrice}}</td>
-            </tr>
-        </tbody>
-    </table>
+<div class="col-sm-10">
+    <div class="row">
+        <div class="col-sm-10">
+            <form class="form-inline row" role="form">
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <label class="form-label">起始日期：</label>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="date" ng-model="startDate"/>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <label class="control-label">终止日期：</label>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="date" ng-model="endDate"/>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <button type="submit" class="btn btn-default" ng-click="pricesChange()">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row col-sm-10" style="margin-top:20px">
+        <div ng-show="pricesSuccess" class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    {{size}}个降价房源
+                </h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th class="col-sm-1 text-center">id</th>
+                        <th class="col-sm-1 text-center">描述</th>
+                        <th class="col-sm-1">小区</th>
+                        <th class="col-sm-1">起始日期价格</th>
+                        <th class="col-sm-1">终止日期价格</th>
+                        <th class="col-sm-1">总计变化</th>
+                        <th class="col-sm-1">每平米价格变化</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="item in items">
+                        <td class="text-center"><a target="_blank" href="http://bj.lianjia.com/ershoufang/{{item.id}}.html">{{item.id}}</a></td>
+                        <td class="text-center">{{item.desc}}</td>
+                        <td>{{item.community}}</td>
+                        <td>{{item.startPrice | housePrice}}</td>
+                        <td>{{item.endPrice | housePrice}}</td>
+                        <td>{{item.changes | housePrice}}</td>
+                        <td>{{item.unitChanges | unitPrice}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>

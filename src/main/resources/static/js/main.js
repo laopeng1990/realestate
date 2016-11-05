@@ -28,13 +28,28 @@ myApp.controller('rootCtrl', function() {
     });
 });
 
-myApp.controller('pricesChange', function($scope, $http) {
+myApp.controller('pricesChange', function($scope, $http, $filter) {
     $scope.menuType = 'prices';
-    $http.get("/prices/changes")
+    var curDate = new Date();
+    curDate.setDate(curDate.getDate() - 1);
+    $scope.endDate = $filter('date')(curDate, 'yyyy-MM-dd');
+    curDate.setDate(curDate.getDate() - 1);
+    $scope.startDate = $filter('date')(curDate, 'yyyy-MM-dd');
+    $scope.pricesSuccess = false;
+    $http.get("/prices/changes", {params: {"startDate": $scope.startDate, "endDate":$scope.endDate}})
         .success(function(res) {
             $scope.size = res.size;
             $scope.items = res.items;
+            $scope.pricesSuccess = true;
         });
+    $scope.pricesChange = function() {
+        $http.get("/prices/changes", {params: {"startDate": $scope.startDate, "endDate":$scope.endDate}})
+                .success(function(res) {
+                    $scope.size = res.size;
+                    $scope.items = res.items;
+                    $scope.pricesSuccess = true;
+                });
+    }
 });
 
 myApp.controller('pricesTrans', function($scope) {
