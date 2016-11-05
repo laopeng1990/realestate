@@ -7,7 +7,6 @@ import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.storage.HouseRedisDao;
 import com.wpf.realestate.storage.RedisDBConfig;
-import org.apache.commons.beanutils.BeanUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -18,8 +17,6 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -44,42 +41,30 @@ public class PriceChangeService {
 
             String startDateStr = startDate.toString(dateFormat);
             String endDateStr = endDate.toString(dateFormat);
-            Map<String, Object> startHouseMap = houseRedisDao.getHouses(startDateStr, GlobalConsts.LIANJIA_SOURCE);
-            Map<String, Object> endHouseMap = houseRedisDao.getHouses(endDateStr, GlobalConsts.LIANJIA_SOURCE);
-            JSONArray upArray = new JSONArray();
+            Map<String, Object> startHouseMap = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, startDateStr);
+            Map<String, Object> endHouseMap = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, endDateStr);
             JSONArray downArray = new JSONArray();
-            int unchangedSize = 0;
-            int upSize = 0;
             int downSize = 0;
-            int nIntersectSize = 0;
+            List<String> houseIds = new ArrayList<>();
             for (Map.Entry<String, Object> entry : startHouseMap.entrySet()) {
                 String houseId = entry.getKey();
                 if (!endHouseMap.containsKey(houseId)) {
                     continue;
                 }
-                nIntersectSize++;
                 String startItemStr = (String)startHouseMap.get(houseId);
-                House startHouse = JSON.parseObject(startItemStr, House.class);
+                Double startPrice = Double.parseDouble(startItemStr);
                 String endItemStr = (String)endHouseMap.get(houseId);
-                House endHouse = JSON.parseObject(endItemStr, House.class);
-                if (startHouse.getPrice().compareTo(endHouse.getPrice()) <= 0) {
+                Double endPrice = Double.parseDouble(endItemStr);
+                if (startPrice.compareTo(endPrice) <= 0) {
                     continue;
                 }
                 JSONObject item = new JSONObject();
                 item.put("id", houseId);
-                item.put("desc", startHouse.getDesc());
-                item.put("community", startHouse.getCommunityName());
-                item.put("startPrice", startHouse.getPrice());
-                item.put("endPrice", endHouse.getPrice());
-                item.put("changes", startHouse.getPrice() - endHouse.getPrice());
-                item.put("unitChanges", startHouse.getUnitPrice() - endHouse.getUnitPrice());
-                if (startHouse.getPrice().compareTo(endHouse.getPrice()) > 0) {
-                    downArray.add(item);
-                    downSize++;
-                } else {
-                    upArray.add(item);
-                    upSize++;
-                }
+                item.put("startPrice", startPrice);
+                item.put("endPrice", endPrice);
+                item.put("changes", startPrice - endPrice);
+                downArray.add(item);
+                downSize++;
             }
 
             Collections.sort(downArray, new Comparator<Object>() {
@@ -91,14 +76,21 @@ public class PriceChangeService {
                 }
             });
 
-            Collections.sort(upArray, new Comparator<Object>() {
-                @Override
-                public int compare(Object o1, Object o2) {
-                    Double dVal1 = ((JSONObject) o1).getDouble("changes");
-                    Double dVal2 = ((JSONObject) o2).getDouble("changes");
-                    return dVal2.compareTo(dVal1);
-                }
-            });
+            for (int i = 0; i < downSize; ++i) {
+                JSONObject item = downArray.getJSONObject(i);
+                houseIds.add(item.getString("id"));
+            }
+
+            List<Object> houseInfos = houseRedisDao.getHouses(GlobalConsts.LIANJIA_SOURCE, houseIds);
+            for (int i = 0; i < downSize; ++i) {
+                JSONObject item = downArray.getJSONObject(i);
+                String objStr = (String)houseInfos.get(i);
+                House house = JSON.parseObject(objStr, House.class);
+                item.put("desc", house.getDesc());
+                item.put("community", house.getCommunityName());
+                Double changes = item.getDouble("changes");
+                item.put("unitChanges", changes / house.getArea());
+            }
 
             JSONObject resObj = new JSONObject();
             resObj.put("size", downSize);

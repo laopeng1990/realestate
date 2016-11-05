@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by wenpengfei on 2016/10/28.
@@ -30,13 +31,43 @@ public class HouseRedisDao {
         this.redisTemplate = redisTemplate;
     }
 
-    public void addHouses(String date, String source, Map<String, String> houses) {
-        if (date == null || source == null || houses == null) {
+    public void addDayPrices(String source, String date, Map<String, String> prices) {
+        if (date == null || source == null || prices == null) {
             return;
         }
 
         try {
-            String key = date + ":" + source;
+            String key = buildRedisPriceKey(source, date);
+            BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
+            hashOps.putAll(prices);
+        } catch (Exception e) {
+            LOG.error("addHouses", e);
+        }
+    }
+
+    public Map<String, Object> getDayPrices(String source, String date) {
+        if (source == null || date == null) {
+            return null;
+        }
+
+        try {
+            String key = buildRedisPriceKey(source, date);
+            BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
+            return hashOps.entries();
+        } catch (Exception e) {
+            LOG.error("getDayPrices", e);
+        }
+
+        return null;
+    }
+
+    public void addHouses(String source, Map<String, String> houses) {
+        if (source == null || houses == null || houses.isEmpty()) {
+            return;
+        }
+
+        try {
+            String key = GlobalConsts.HOUSE_INFO_PREFIX + source;
             BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
             hashOps.putAll(houses);
         } catch (Exception e) {
@@ -44,15 +75,15 @@ public class HouseRedisDao {
         }
     }
 
-    public Map<String, Object> getHouses(String date, String source) {
-        if (date == null || source == null) {
+    public List<Object> getHouses(String source, List<String> houseSet) {
+        if (source == null || houseSet == null || houseSet.isEmpty()) {
             return null;
         }
 
         try {
-            String key = date + ":" + source;
+            String key = GlobalConsts.HOUSE_INFO_PREFIX + source;
             BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
-            return hashOps.entries();
+            return hashOps.multiGet(houseSet);
         } catch (Exception e) {
             LOG.error("getHouses", e);
         }
@@ -66,7 +97,7 @@ public class HouseRedisDao {
         }
 
         try {
-            String key = GlobalConsts.DAY_STATISTICS + ":" + source;
+            String key = GlobalConsts.DAY_STATISTICS_PREFIX + source;
             BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
             hashOps.put(date, dayData.toString());
         } catch (Exception e) {
@@ -80,7 +111,7 @@ public class HouseRedisDao {
         }
 
         try {
-            String key = GlobalConsts.DAY_STATISTICS + ":" + source;
+            String key = GlobalConsts.DAY_STATISTICS_PREFIX + ":" + source;
             BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
             List<Object> objs = hashOps.multiGet(dates);
             Map<String, LjDayData> dayDataMap = new HashMap<>();
@@ -101,5 +132,9 @@ public class HouseRedisDao {
         }
 
         return null;
+    }
+
+    private String buildRedisPriceKey(String source, String date) {
+        return new StringBuilder(GlobalConsts.PRICE_INFO_PREFIX).append(source).append(":").append(date).toString();
     }
 }

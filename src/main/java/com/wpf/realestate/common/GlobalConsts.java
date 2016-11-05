@@ -14,5 +14,9 @@ public class GlobalConsts {
     //lian jia
     public static final String LIANJIA_SOURCE = "lj";
     //statistics
-    public static final String DAY_STATISTICS = "day_statistics";
+    public static final String DAY_STATISTICS_PREFIX = "day_statistics:";
+    //house info prefix
+    public static final String HOUSE_INFO_PREFIX = "house:";
+    //price info prefix
+    public static final String PRICE_INFO_PREFIX = "price:";
 }

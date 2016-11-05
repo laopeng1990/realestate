@@ -74,12 +74,16 @@ public class LjExtractor {
                     continue;
                 }
                 int nSize = dataArray.size();
-                Map<String, String> houses = new HashMap<>();
+                Map<String, String> prices = new HashMap<>();
+                Map<String, House> houseMap = new HashMap<>();
+                Map<String, House> noInfoHouses = new HashMap<>();
+                List<String> houseIds = new ArrayList<>();
                 for (int i = 0; i < nSize; ++i) {
                     JSONObject itemObj = dataArray.getJSONObject(i);
                     House house = new House();
                     String houseCode = itemObj.getString("house_code");
                     house.setId(houseCode);
+                    houseIds.add(houseCode);
                     house.setDesc(itemObj.getString("title"));
                     house.setCommunityName(itemObj.getString("community_name"));
                     house.setArea(itemObj.getDouble("area"));
@@ -96,10 +100,20 @@ public class LjExtractor {
                         }
                     }
                     house.setTags(tagList);
-                    houses.put(houseCode, house.toString());
+                    prices.put(houseCode, house.getPrice().toString());
+                    houseMap.put(houseCode, house);
                 }
-                houseRedisDao.addHouses(date, provider.getSource(), houses);
-                LOG.info("get {} house info offset {}", houses.size(), offset);
+                houseRedisDao.addDayPrices(provider.getSource(), date, prices);
+                List<Object> houseInfos = houseRedisDao.getHouses(provider.getSource(), houseIds);
+                for (int i = 0; i < nSize; ++i) {
+                    Object obj = houseInfos.get(i);
+                    if (obj != null) {
+                        continue;
+                    }
+                    String houseCode = houseIds.get(i);
+                    noInfoHouses.put(houseCode, houseMap.get(houseCode));
+                }
+                LOG.info("get {} house info offset {}", prices.size(), offset);
                 offset += pageSize;
                 if (hasMore == 0) {
                     LOG.info("has no more houses offset {}", offset);

@@ -5,7 +5,7 @@ myApp.filter("housePrice", function() {
     };
 }).filter("unitPrice", function() {
     return function(input) {
-        return input + "元";
+        return input.toFixed(0) + "元";
     };
 });
 myApp.controller('rootCtrl', function() {
