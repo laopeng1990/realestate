@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.common.GlobalConsts;
+import com.wpf.realestate.data.House;
 import com.wpf.realestate.data.LjDayData;
 import com.wpf.realestate.util.AuthUtils;
 import com.wpf.realestate.util.ConfigUtils;
@@ -12,8 +13,11 @@ import com.wpf.realestate.util.http.HttpMethod;
 import com.wpf.realestate.util.http.HttpRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,35 +26,40 @@ import java.util.Map;
 public class LjProvider {
     private static final Logger LOG = LoggerFactory.getLogger(LjProvider.class);
 
-    private static final String LJ_HOUSE_URL = "http://app.api.lianjia.com/house/ershoufang/searchv3";
+    private static final String LJ_HOUSE_LIST = "http://app.api.lianjia.com/house/ershoufang/searchv3";
 
     private static final String LJ_STATISTICS_URL = "http://app.api.lianjia.com/house/fangjia/search";
 
-    private Map<String, String> houseInfoParams;
+    private static final String LJ_HOUSE_DETAIL = "http://app.api.lianjia.com/house/ershoufang/detailV3";
+
+    private Map<String, String> houseListParams;
 
     private Map<String, String> houseStatisticsParam;
+
+    private Map<String, String> houseInfoParams;
 
     private Map<String, String> headers;
 
     public LjProvider() {
-        buildHouseInfoParams();
+        buildHouseListParams();
         buildStatisticsParams();
+        buildHouseInfoParams();
         buildHeaders();
     }
 
-    private void buildHouseInfoParams() {
-        houseInfoParams = new HashMap<>();
-        houseInfoParams.put("isFromMap", "false");
-        houseInfoParams.put("city_id", "110000");
-        houseInfoParams.put("is_suggestion", "0");
-        houseInfoParams.put("roomRequest", "");
-        houseInfoParams.put("moreRequest", "");
-        houseInfoParams.put("communityRequset", "");
-        houseInfoParams.put("condition", "");
-        houseInfoParams.put("priceRequest", "");
-        houseInfoParams.put("areaRequest", "");
-        houseInfoParams.put("is_history", "0");
-        houseInfoParams.put("sugQueryStr", "");
+    private void buildHouseListParams() {
+        houseListParams = new HashMap<>();
+        houseListParams.put("isFromMap", "false");
+        houseListParams.put("city_id", "110000");
+        houseListParams.put("is_suggestion", "0");
+        houseListParams.put("roomRequest", "");
+        houseListParams.put("moreRequest", "");
+        houseListParams.put("communityRequset", "");
+        houseListParams.put("condition", "");
+        houseListParams.put("priceRequest", "");
+        houseListParams.put("areaRequest", "");
+        houseListParams.put("is_history", "0");
+        houseListParams.put("sugQueryStr", "");
     }
 
     private void buildStatisticsParams() {
@@ -58,6 +67,11 @@ public class LjProvider {
         houseStatisticsParam.put("city_id", "110000");
         houseStatisticsParam.put("is_format_price", "1");
         houseStatisticsParam.put("is_get_new_bd", "1");
+    }
+
+    private void buildHouseInfoParams() {
+        houseInfoParams = new HashMap<>();
+        houseInfoParams.put("is_format_price", "1");
     }
 
     private void buildHeaders() {
@@ -77,9 +91,9 @@ public class LjProvider {
 
     public Integer getTotalSize() {
         try {
-            houseInfoParams.put("limit_offset", "0");
-            houseInfoParams.put("limit_count", "20");
-            JSONObject dataObj = getData(LJ_HOUSE_URL, houseInfoParams, headers);
+            houseListParams.put("limit_offset", "0");
+            houseListParams.put("limit_count", "20");
+            JSONObject dataObj = getData(LJ_HOUSE_LIST, houseListParams, headers);
             Integer totalCount = dataObj.getInteger("total_count");
 
             return totalCount;
@@ -90,15 +104,56 @@ public class LjProvider {
         return null;
     }
 
-    public JSONObject getHouses(int offset, int count) {
+    public JSONObject getHouseList(int offset, int count) {
         try {
-            houseInfoParams.put("limit_offset", String.valueOf(offset));
-            houseInfoParams.put("limit_count", String.valueOf(count));
-            JSONObject dataObj = getData(LJ_HOUSE_URL, houseInfoParams, headers);
+            houseListParams.put("limit_offset", String.valueOf(offset));
+            houseListParams.put("limit_count", String.valueOf(count));
+            JSONObject dataObj = getData(LJ_HOUSE_LIST, houseListParams, headers);
 
             return dataObj;
         } catch (Exception e) {
-            LOG.error("getHouses", e);
+            LOG.error("getHouseList", e);
+        }
+
+        return null;
+    }
+
+    public House getHouseDetail(String houseCode) {
+        try {
+            houseInfoParams.put("house_code", houseCode);
+            JSONObject dataObj = getData(LJ_HOUSE_DETAIL, houseInfoParams, headers);
+            House house = new House();
+            house.setId(houseCode);
+            house.setSource(getSource());
+            JSONObject headInfoObj = dataObj.getJSONObject("head_info");
+            house.setTitle(headInfoObj.getString("head_title"));
+            JSONArray tagArray = headInfoObj.getJSONArray("tags");
+            List<String> tagList = new ArrayList<>();
+            if (tagArray != null && !tagArray.isEmpty()) {
+                for (int i = 0; i < tagArray.size(); ++i) {
+                    tagList.add(tagArray.getString(i));
+                }
+            }
+            house.setTags(tagList);
+            JSONObject basicInfoObj = dataObj.getJSONObject("basic_info");
+            house.setDesc(basicInfoObj.getString("title"));
+            house.setArea(basicInfoObj.getDouble("area"));
+            house.setUsage(basicInfoObj.getString("usage"));
+            house.setFloorState(basicInfoObj.getString("floor_state"));
+            house.setOrientation(basicInfoObj.getString("orientation"));
+            house.setBuildingType(basicInfoObj.getString("building_type"));
+            house.setBuildingYear(basicInfoObj.getString("building_finish_year"));
+            house.setDistrictName(basicInfoObj.getString("district_name"));
+            house.setCircleName(basicInfoObj.getString("bizcircle_name"));
+            house.setSubwayInfo(basicInfoObj.getString("subway_info"));
+            house.setCommunityName(basicInfoObj.getString("community_name"));
+            house.setHallNum(basicInfoObj.getInteger("blueprint_hall_num"));
+            house.setBedroomNum(basicInfoObj.getInteger("blueprint_bedroom_num"));
+            house.setPrice(basicInfoObj.getDouble("price"));
+            house.setUnitPrice(basicInfoObj.getDouble("unit_price"));
+            return house;
+        } catch (Exception e) {
+            LOG.error("getHouseDetail", e);
         }
 
         return null;
@@ -191,6 +246,6 @@ public class LjProvider {
 
     public static void main(String[] args) {
         LjProvider provider = new LjProvider();
-        provider.getHouses(12580, 20);
+        provider.getHouseDetail("101100762406");
     }
 }

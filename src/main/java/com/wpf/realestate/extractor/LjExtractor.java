@@ -59,7 +59,7 @@ public class LjExtractor {
         String date = dateTime.toString(formatter);
         while (true) {
             try {
-                JSONObject dataObj = provider.getHouses(offset, pageSize);
+                JSONObject dataObj = provider.getHouseList(offset, pageSize);
                 if (dataObj == null) {
                     LOG.error("null object offset {} page size {}", offset, pageSize);
                     continue;
@@ -67,58 +67,44 @@ public class LjExtractor {
                 Integer hasMore = dataObj.getInteger("has_more_data");
                 JSONArray dataArray = dataObj.getJSONArray("list");
                 if (dataArray == null) {
-                    LOG.error("null data array offset {} count {} response {}, retry after 1min", offset, pageSize, dataObj);
+                    LOG.error("null data array offset {} count {} response {}", offset, pageSize, dataObj);
                     if (hasMore == 0) {
                         offset += pageSize;
                     }
                     continue;
                 }
+                //get price list
                 int nSize = dataArray.size();
                 Map<String, String> prices = new HashMap<>();
-                Map<String, House> houseMap = new HashMap<>();
-                Map<String, House> noInfoHouses = new HashMap<>();
                 List<String> houseIds = new ArrayList<>();
                 for (int i = 0; i < nSize; ++i) {
                     JSONObject itemObj = dataArray.getJSONObject(i);
-                    House house = new House();
                     String houseCode = itemObj.getString("house_code");
-                    house.setId(houseCode);
+                    prices.put(houseCode, itemObj.getString("price"));
                     houseIds.add(houseCode);
-                    house.setDesc(itemObj.getString("title"));
-                    house.setCommunityName(itemObj.getString("community_name"));
-                    house.setArea(itemObj.getDouble("area"));
-                    house.setPrice(itemObj.getDouble("price"));
-                    house.setUnitPrice(itemObj.getDouble("unit_price"));
-                    house.setOrientation(itemObj.getString("orientation"));
-                    house.setSource(GlobalConsts.LIANJIA_SOURCE);
-                    JSONArray tagArray = itemObj.getJSONArray("tags");
-                    List<String> tagList = new ArrayList<>();
-                    if (tagArray != null) {
-                        int tagSize = tagArray.size();
-                        for (int j = 0; j < tagSize; ++j) {
-                            tagList.add(tagArray.getString(j));
-                        }
-                    }
-                    house.setTags(tagList);
-                    prices.put(houseCode, house.getPrice().toString());
-                    houseMap.put(houseCode, house);
                 }
+                LOG.info("get {} house info offset {}", prices.size(), offset);
                 houseRedisDao.addDayPrices(provider.getSource(), date, prices);
+                //get price detail
                 List<Object> houseInfos = houseRedisDao.getHouses(provider.getSource(), houseIds);
+                Map<String, String> newHouseInfoMap = new HashMap<>();
                 for (int i = 0; i < nSize; ++i) {
                     Object obj = houseInfos.get(i);
                     if (obj != null) {
                         continue;
                     }
                     String houseCode = houseIds.get(i);
-                    noInfoHouses.put(houseCode, houseMap.get(houseCode));
+                    House house = provider.getHouseDetail(houseCode);
+                    LOG.info("get house detail id {}", houseCode);
+                    newHouseInfoMap.put(houseCode, house.toString());
                 }
-                LOG.info("get {} house info offset {}", prices.size(), offset);
+                houseRedisDao.addHouses(provider.getSource(), newHouseInfoMap);
                 offset += pageSize;
                 if (hasMore == 0) {
                     LOG.info("has no more houses offset {}", offset);
                     break;
                 }
+                Thread.sleep(10000);
             } catch (Exception e) {
                 LOG.error("process while", e);
             }

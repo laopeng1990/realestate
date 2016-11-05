@@ -13,14 +13,14 @@ public class House {
     private String source;
     //标识
     private String id;
+    //标题
+    private String title;
     //价格
     private Double price;
     //单价
     private Double unitPrice;
     //面积
     private Double area;
-    //链接
-    private String link;
     //描述
     private String desc;
     //社区名称
@@ -29,6 +29,32 @@ public class House {
     private List<String> tags;
     //朝向
     private String orientation;
+    //地区名称
+    private String districtName;
+    //商圈名称
+    private String circleName;
+    //性质
+    private String usage;
+    //楼层
+    private String floorState;
+    //楼类型
+    private String buildingType;
+    //楼年代
+    private String buildingYear;
+    //地铁信息
+    private String subwayInfo;
+    //厅数量
+    private Integer hallNum;
+    //室数量
+    private Integer bedroomNum;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     public String getSource() {
         return source;
@@ -70,14 +96,6 @@ public class House {
         this.area = area;
     }
 
-    public String getLink() {
-        return link;
-    }
-
-    public void setLink(String link) {
-        this.link = link;
-    }
-
     public String getDesc() {
         return desc;
     }
@@ -108,6 +126,78 @@ public class House {
 
     public void setOrientation(String orientation) {
         this.orientation = orientation;
+    }
+
+    public String getDistrictName() {
+        return districtName;
+    }
+
+    public void setDistrictName(String districtName) {
+        this.districtName = districtName;
+    }
+
+    public String getCircleName() {
+        return circleName;
+    }
+
+    public void setCircleName(String circleName) {
+        this.circleName = circleName;
+    }
+
+    public String getUsage() {
+        return usage;
+    }
+
+    public void setUsage(String usage) {
+        this.usage = usage;
+    }
+
+    public String getFloorState() {
+        return floorState;
+    }
+
+    public void setFloorState(String floorState) {
+        this.floorState = floorState;
+    }
+
+    public String getBuildingType() {
+        return buildingType;
+    }
+
+    public void setBuildingType(String buildingType) {
+        this.buildingType = buildingType;
+    }
+
+    public String getBuildingYear() {
+        return buildingYear;
+    }
+
+    public void setBuildingYear(String buildingYear) {
+        this.buildingYear = buildingYear;
+    }
+
+    public String getSubwayInfo() {
+        return subwayInfo;
+    }
+
+    public void setSubwayInfo(String subwayInfo) {
+        this.subwayInfo = subwayInfo;
+    }
+
+    public Integer getHallNum() {
+        return hallNum;
+    }
+
+    public void setHallNum(Integer hallNum) {
+        this.hallNum = hallNum;
+    }
+
+    public Integer getBedroomNum() {
+        return bedroomNum;
+    }
+
+    public void setBedroomNum(Integer bedroomNum) {
+        this.bedroomNum = bedroomNum;
     }
 
     @Override

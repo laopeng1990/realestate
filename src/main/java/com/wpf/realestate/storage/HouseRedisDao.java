@@ -70,6 +70,8 @@ public class HouseRedisDao {
             String key = GlobalConsts.HOUSE_INFO_PREFIX + source;
             BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
             hashOps.putAll(houses);
+
+            LOG.info("add {} house details", houses.size());
         } catch (Exception e) {
             LOG.error("addHouses", e);
         }
