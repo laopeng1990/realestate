@@ -22,10 +22,10 @@ start)
         mvn clean compile
         if [ $2 = "web" ]
         then
-                nohup mvn spring-boot:run 2>&1
+                nohup mvn spring-boot:run 2>&1 > /dev/null &
         elif [ $2 = "crawl" ]
         then
-                nohup mvn exec:java -Dexec.mainClass="com.wpf.realestate.server.CrawlServer" 2>&1 &
+                nohup mvn exec:java -Dexec.mainClass="com.wpf.realestate.server.CrawlServer" 2>&1 > /dev/null &
         else
                 rm config/config.xml
                 echo $USAGE_MSG 2>&1

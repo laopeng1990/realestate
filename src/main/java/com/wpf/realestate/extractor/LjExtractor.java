@@ -104,7 +104,6 @@ public class LjExtractor {
                     LOG.info("has no more houses offset {}", offset);
                     break;
                 }
-                Thread.sleep(10000);
             } catch (Exception e) {
                 LOG.error("process while", e);
             }

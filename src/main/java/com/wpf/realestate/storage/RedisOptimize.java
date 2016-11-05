@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import sun.reflect.generics.reflectiveObjects.LazyReflectiveObjectGenerator;
 
 import java.util.HashMap;
 import java.util.Map;
