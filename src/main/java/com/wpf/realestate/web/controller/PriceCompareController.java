@@ -22,13 +22,14 @@ public class PriceCompareController {
     @RequestMapping("/prices/changes")
     @ResponseBody
     public JSONObject getPricesChanges(@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime startDate,
-                                       @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime endDate) {
+                                       @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime endDate,
+                                       @RequestParam(defaultValue = "false") Boolean up) {
         if (endDate == null) {
             endDate = DateTime.now().minusDays(1);
         }
         if (startDate == null) {
             startDate = endDate.minusDays(1);
         }
-        return priceChangeService.priceChanges(startDate, endDate);
+        return priceChangeService.priceChanges(startDate, endDate, up);
     }
 }

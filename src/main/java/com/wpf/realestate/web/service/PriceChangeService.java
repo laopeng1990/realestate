@@ -30,21 +30,32 @@ public class PriceChangeService {
 
     private HouseRedisDao houseRedisDao;
 
+    private Map<String, Map<String, Object>> priceMapCache;
+
     @Autowired
     public PriceChangeService(HouseRedisDao houseRedisDao) {
         this.houseRedisDao = houseRedisDao;
+        priceMapCache = new HashMap<>();
     }
 
-    public JSONObject priceChanges(DateTime startDate, DateTime endDate) {
+    public JSONObject priceChanges(DateTime startDate, DateTime endDate, Boolean up) {
         try {
             long start = System.currentTimeMillis();
 
             String startDateStr = startDate.toString(dateFormat);
             String endDateStr = endDate.toString(dateFormat);
-            Map<String, Object> startHouseMap = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, startDateStr);
-            Map<String, Object> endHouseMap = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, endDateStr);
-            JSONArray downArray = new JSONArray();
-            int downSize = 0;
+            Map<String, Object> startHouseMap = priceMapCache.get(startDateStr);
+            if (startHouseMap == null) {
+                startHouseMap = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, startDateStr);
+                priceMapCache.put(startDateStr, startHouseMap);
+            }
+            Map<String, Object> endHouseMap = priceMapCache.get(endDateStr);
+            if (endHouseMap == null) {
+                endHouseMap = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, endDateStr);;
+                priceMapCache.put(endDateStr, endHouseMap);
+            }
+            JSONArray array = new JSONArray();
+            int size = 0;
             List<String> houseIds = new ArrayList<>();
             for (Map.Entry<String, Object> entry : startHouseMap.entrySet()) {
                 String houseId = entry.getKey();
@@ -55,19 +66,19 @@ public class PriceChangeService {
                 Double startPrice = Double.parseDouble(startItemStr);
                 String endItemStr = (String)endHouseMap.get(houseId);
                 Double endPrice = Double.parseDouble(endItemStr);
-                if (startPrice.compareTo(endPrice) <= 0) {
+                if ((!up && startPrice.compareTo(endPrice) <= 0) || (up && startPrice.compareTo(endPrice) >= 0)) {
                     continue;
                 }
                 JSONObject item = new JSONObject();
                 item.put("id", houseId);
                 item.put("startPrice", startPrice);
                 item.put("endPrice", endPrice);
-                item.put("changes", startPrice - endPrice);
-                downArray.add(item);
-                downSize++;
+                item.put("changes", startPrice > endPrice ? startPrice - endPrice : endPrice - startPrice);
+                array.add(item);
+                size++;
             }
 
-            Collections.sort(downArray, new Comparator<Object>() {
+            Collections.sort(array, new Comparator<Object>() {
                 @Override
                 public int compare(Object o1, Object o2) {
                     Double dVal1 = ((JSONObject) o1).getDouble("changes");
@@ -76,14 +87,17 @@ public class PriceChangeService {
                 }
             });
 
-            for (int i = 0; i < downSize; ++i) {
-                JSONObject item = downArray.getJSONObject(i);
+            for (int i = 0; i < size; ++i) {
+                JSONObject item = array.getJSONObject(i);
                 houseIds.add(item.getString("id"));
             }
 
             List<Object> houseInfos = houseRedisDao.getHouses(GlobalConsts.LIANJIA_SOURCE, houseIds);
-            for (int i = 0; i < downSize; ++i) {
-                JSONObject item = downArray.getJSONObject(i);
+            for (int i = 0; i < size; ++i) {
+                if (houseInfos.get(i) == null) {
+                    continue;
+                }
+                JSONObject item = array.getJSONObject(i);
                 String objStr = (String)houseInfos.get(i);
                 House house = JSON.parseObject(objStr, House.class);
                 item.put("desc", house.getDesc());
@@ -93,8 +107,8 @@ public class PriceChangeService {
             }
 
             JSONObject resObj = new JSONObject();
-            resObj.put("size", downSize);
-            resObj.put("items", downArray);
+            resObj.put("size", size);
+            resObj.put("items", array);
 
             LOG.info("start {} end {} price changes in {} mils", startDateStr, endDateStr, System.currentTimeMillis() - start);
             return resObj;
@@ -123,7 +137,7 @@ public class PriceChangeService {
         PriceChangeService service = new PriceChangeService(redisDao);
         DateTime startDate = dateFormat.parseDateTime("2016-11-03");
         DateTime endDate = dateFormat.parseDateTime("2016-11-04");
-        JSONObject resObj = service.priceChanges(startDate, endDate);
+        JSONObject resObj = service.priceChanges(startDate, endDate, false);
         LOG.info("{}", resObj);
     }
 }

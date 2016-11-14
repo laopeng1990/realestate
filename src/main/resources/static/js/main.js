@@ -5,6 +5,8 @@ myApp.filter("housePrice", function() {
     };
 }).filter("unitPrice", function() {
     return function(input) {
+        if(input == undefined)
+            return "";
         return input.toFixed(0) + "元";
     };
 });
@@ -36,14 +38,16 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
     curDate.setDate(curDate.getDate() - 1);
     $scope.startDate = $filter('date')(curDate, 'yyyy-MM-dd');
     $scope.pricesSuccess = false;
-    $http.get("/prices/changes", {params: {"startDate": $scope.startDate, "endDate":$scope.endDate}})
+    $scope.up = false;
+    $http.get("/prices/changes")
         .success(function(res) {
             $scope.size = res.size;
             $scope.items = res.items;
             $scope.pricesSuccess = true;
         });
     $scope.pricesChange = function() {
-        $http.get("/prices/changes", {params: {"startDate": $scope.startDate, "endDate":$scope.endDate}})
+        $scope.pricesSuccess = false;
+        $http.get("/prices/changes", {params: {"startDate": $scope.startDate, "endDate":$scope.endDate, "up":$scope.up}})
                 .success(function(res) {
                     $scope.size = res.size;
                     $scope.items = res.items;
