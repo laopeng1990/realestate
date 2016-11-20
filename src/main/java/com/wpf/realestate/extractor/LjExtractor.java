@@ -16,10 +16,8 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by wenpengfei on 2016/10/28.
@@ -31,15 +29,24 @@ public class LjExtractor {
 
     private HouseRedisDao houseRedisDao;
     private LjProvider provider;
+    private AtomicBoolean isRun;
 
     public LjExtractor(HouseRedisDao houseRedisDao) {
         this.houseRedisDao = houseRedisDao;
         provider = new LjProvider();
+        isRun = new AtomicBoolean(false);
     }
 
     public void run() {
-        processStatistics();
-        processHouseInfos();
+        if (isRun.get()) {
+            LOG.warn("already running");
+            return;
+        }
+        isRun.set(true);
+        //processStatistics();
+        //processHouseInfos();
+        processHouseDiffs();
+        isRun.set(false);
     }
 
     public void processStatistics() {
@@ -57,6 +64,7 @@ public class LjExtractor {
         int offset = 0;
         DateTime dateTime = DateTime.now();
         String date = dateTime.toString(formatter);
+        List<Integer> nullOffsets = new ArrayList<>();
         while (true) {
             try {
                 JSONObject dataObj = provider.getHouseList(offset, pageSize);
@@ -69,6 +77,7 @@ public class LjExtractor {
                 if (dataArray == null) {
                     LOG.error("null data array offset {} count {} response {}", offset, pageSize, dataObj);
                     if (hasMore == 0) {
+                        nullOffsets.add(offset);
                         offset += pageSize;
                     }
                     continue;
@@ -107,6 +116,27 @@ public class LjExtractor {
             } catch (Exception e) {
                 LOG.error("process while", e);
             }
+        }
+    }
+
+    public void processHouseDiffs() {
+        try {
+            DateTime now = DateTime.now();
+            String nowDateStr = now.toString(formatter);
+            Map<String, Object> nowHouses = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, nowDateStr);
+            String lastDateStr = now.minusDays(1).toString(formatter);
+            Map<String, Object> lastHouses = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, lastDateStr);
+            Set<String> diffSet = lastHouses.keySet();
+            diffSet.removeAll(nowHouses.keySet());
+            LOG.info("{} diff houses", diffSet.size());
+
+            for (String houseId : diffSet) {
+                House house = provider.getHouseDetail(houseId);
+                //house 状态正常 加入今天redis中
+                //house 下架-成交 加入redis diff中
+            }
+        } catch (Exception e) {
+            LOG.error("processHouseDiffs", e);
         }
     }
 
