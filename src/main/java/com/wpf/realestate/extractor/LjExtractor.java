@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
+import com.wpf.realestate.data.HouseStatus;
 import com.wpf.realestate.data.LjDayData;
 import com.wpf.realestate.provider.LjProvider;
 import com.wpf.realestate.storage.HouseRedisDao;
@@ -43,8 +44,8 @@ public class LjExtractor {
             return;
         }
         isRun.set(true);
-        //processStatistics();
-        //processHouseInfos();
+        processStatistics();
+        processHouseInfos();
         processHouseDiffs();
         isRun.set(false);
     }
@@ -130,11 +131,48 @@ public class LjExtractor {
             diffSet.removeAll(nowHouses.keySet());
             LOG.info("{} diff houses", diffSet.size());
 
+            //miss house
+            Map<String, String> prices = new HashMap<>();
+            Map<String, String> houseInfos = new HashMap<>();
+            //diff house
+            Map<String, String> diffHouses = new HashMap<>();
             for (String houseId : diffSet) {
                 House house = provider.getHouseDetail(houseId);
-                //house 状态正常 加入今天redis中
-                //house 下架-成交 加入redis diff中
+                if (house != null) {
+                    //还在售
+                    prices.put(houseId, house.getPrice().toString());
+                    houseInfos.put(houseId, house.toString());
+                    continue;
+                }
+                House soldHouse = provider.getSoldHouse(houseId);
+                if (soldHouse != null) {
+                    //已售出 更新house相关字段
+                    House oldHouse = houseRedisDao.getHouse(provider.getSource(), houseId);
+                    if (oldHouse != null) {
+                        oldHouse.setHouseStatus(soldHouse.getHouseStatus());
+                        oldHouse.setSoldMils(soldHouse.getSoldMils());
+                        oldHouse.setSoldSource(soldHouse.getSoldSource());
+                        houseRedisDao.updateHouse(provider.getSource(), oldHouse);
+                    } else {
+                        houseRedisDao.updateHouse(provider.getSource(), soldHouse);
+                    }
+                    diffHouses.put(houseId, soldHouse.toString());
+                    continue;
+                }
+                //停售了 更新house相关字段
+                House oldHouse = houseRedisDao.getHouse(provider.getSource(), houseId);
+                oldHouse.setDisableTime(DateTime.now());
+                oldHouse.setHouseStatus(HouseStatus.DISABLE);
+                houseRedisDao.updateHouse(provider.getSource(), oldHouse);
+                House disableHouse = new House();
+                disableHouse.setDisableTime(DateTime.now());
+                diffHouses.put(houseId, disableHouse.toString());
             }
+
+            houseRedisDao.addDayPrices(provider.getSource(), nowDateStr, prices);
+            houseRedisDao.addHouses(provider.getSource(), houseInfos);
+
+            houseRedisDao.addHouseDiffs(nowDateStr, diffHouses);
         } catch (Exception e) {
             LOG.error("processHouseDiffs", e);
         }

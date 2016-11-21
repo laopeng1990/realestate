@@ -19,4 +19,6 @@ public class GlobalConsts {
     public static final String HOUSE_INFO_PREFIX = "house:";
     //price info prefix
     public static final String PRICE_INFO_PREFIX = "price:";
+    //house diff prefix
+    public static final String HOUSE_DIFF_PREFIX = "house_diff:";
 }

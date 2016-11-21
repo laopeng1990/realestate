@@ -1,5 +1,6 @@
 package com.wpf.realestate.util;
 
+import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -12,6 +13,10 @@ import java.util.Date;
 public class TimeUtils {
 
     public static final DateTimeFormatter TARGET_DATE_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd");
+
+    public static String print(DateTime dateTime) {
+        return dateTime.toString(TARGET_DATE_FORMATTER);
+    }
 
     /**
      * 获取距离指定时间hour:minute最小的时间戳

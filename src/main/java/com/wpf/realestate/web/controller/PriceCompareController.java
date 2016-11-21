@@ -2,6 +2,7 @@ package com.wpf.realestate.web.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.web.service.PriceChangeService;
+import com.wpf.realestate.web.service.PriceDiffService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,6 +20,9 @@ public class PriceCompareController {
     @Autowired
     private PriceChangeService priceChangeService;
 
+    @Autowired
+    private PriceDiffService priceDiffService;
+
     @RequestMapping("/prices/changes")
     @ResponseBody
     public JSONObject getPricesChanges(@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime startDate,
@@ -31,5 +35,15 @@ public class PriceCompareController {
             startDate = endDate.minusDays(1);
         }
         return priceChangeService.priceChanges(startDate, endDate, up);
+    }
+
+    @RequestMapping("/house/diff")
+    @ResponseBody
+    public JSONObject getHouseDiffs(@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") DateTime date) {
+        if (date == null) {
+            date = DateTime.now().minusDays(1);
+        }
+
+        return priceDiffService.priceDiffs(date);
     }
 }

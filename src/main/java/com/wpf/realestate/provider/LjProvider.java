@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
+import com.wpf.realestate.data.HouseStatus;
 import com.wpf.realestate.data.LjDayData;
 import com.wpf.realestate.util.AuthUtils;
 import com.wpf.realestate.util.ConfigUtils;
@@ -13,7 +14,6 @@ import com.wpf.realestate.util.http.HttpMethod;
 import com.wpf.realestate.util.http.HttpRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,11 +32,15 @@ public class LjProvider {
 
     private static final String LJ_HOUSE_DETAIL = "http://app.api.lianjia.com/house/ershoufang/detailV3";
 
+    private static final String LJ_SOLD_HOUSE_DETAIL = "http://app.api.lianjia.com/house/chengjiao/detail";
+
     private Map<String, String> houseListParams;
 
     private Map<String, String> houseStatisticsParam;
 
     private Map<String, String> houseInfoParams;
+
+    private Map<String, String> soldHouseInfoParams;
 
     private Map<String, String> headers;
 
@@ -74,6 +78,11 @@ public class LjProvider {
         houseInfoParams.put("is_format_price", "1");
     }
 
+    private void buildSalesHouseInfoParams() {
+        soldHouseInfoParams = new HashMap<>();
+        soldHouseInfoParams.put("city_id", "110000");
+    }
+
     private void buildHeaders() {
         headers = new HashMap<>();
         headers.put("User-Agent", "HomeLink7.1.1;Coolpad Coolpad+8297; Android 4.4.2");
@@ -93,7 +102,8 @@ public class LjProvider {
         try {
             houseListParams.put("limit_offset", "0");
             houseListParams.put("limit_count", "20");
-            JSONObject dataObj = getData(LJ_HOUSE_LIST, houseListParams, headers);
+            String response = getResponse(LJ_HOUSE_LIST, houseListParams, headers);
+            JSONObject dataObj = getData(response);
             Integer totalCount = dataObj.getInteger("total_count");
 
             return totalCount;
@@ -108,7 +118,8 @@ public class LjProvider {
         try {
             houseListParams.put("limit_offset", String.valueOf(offset));
             houseListParams.put("limit_count", String.valueOf(count));
-            JSONObject dataObj = getData(LJ_HOUSE_LIST, houseListParams, headers);
+            String response = getResponse(LJ_HOUSE_LIST, houseListParams, headers);
+            JSONObject dataObj = getData(response);
 
             return dataObj;
         } catch (Exception e) {
@@ -121,7 +132,11 @@ public class LjProvider {
     public House getHouseDetail(String houseCode) {
         try {
             houseInfoParams.put("house_code", houseCode);
-            JSONObject dataObj = getData(LJ_HOUSE_DETAIL, houseInfoParams, headers);
+            String response = getResponse(LJ_HOUSE_DETAIL, houseInfoParams, headers);
+            JSONObject dataObj = getData(response);
+            if (dataObj == null) {
+                return null;
+            }
             House house = new House();
             house.setId(houseCode);
             house.setSource(getSource());
@@ -161,7 +176,8 @@ public class LjProvider {
 
     public LjDayData getStatistics() {
         try {
-            JSONObject dataObj = getData(LJ_STATISTICS_URL, houseStatisticsParam, headers);
+            String response = getResponse(LJ_STATISTICS_URL, houseStatisticsParam, headers);
+            JSONObject dataObj = getData(response);
             LjDayData dayData = new LjDayData();
             JSONObject cardObj = dataObj.getJSONObject("card");
             if (cardObj != null) {
@@ -207,7 +223,7 @@ public class LjProvider {
         return null;
     }
 
-    private JSONObject getData(String url, Map<String, String> params, Map<String, String> headers) {
+    private String getResponse(String url, Map<String, String> params, Map<String, String> headers) {
         try {
             String response = null;
             params.put("request_ts", String.valueOf(System.currentTimeMillis() / 1000L));
@@ -226,17 +242,54 @@ public class LjProvider {
                     break;
                 }
             }
+            return response;
+        } catch (Exception e) {
+            LOG.error("getResponse", e);
+        }
 
-            if (response != null) {
-                JSONObject json = JSON.parseObject(response);
-                int errorNo = json.getInteger("errno");
-                if (errorNo != 0) {
-                    LOG.error("error no {} error msg {}", errorNo, json.getString("error"));
-                    return null;
-                }
+        return null;
+    }
 
-                return json.getJSONObject("data");
+    public House getSoldHouse(String houseCode) {
+        try {
+            soldHouseInfoParams.put("house_code", houseCode);
+            String response = getResponse(LJ_SOLD_HOUSE_DETAIL, soldHouseInfoParams, headers);
+            JSONObject dataObj = getData(response);
+            if (dataObj == null) {
+                return null;
             }
+            Long soldMils = dataObj.getLong("sign_timestamp");
+            String soldSource = dataObj.getString("sign_source");
+            Double soldPrice = dataObj.getDouble("sign_price");
+            House house = new House();
+            house.setId(houseCode);
+            house.setSoldMils(soldMils);
+            house.setSoldSource(soldSource);
+            house.setSoldPrice(soldPrice);
+            house.setHouseStatus(HouseStatus.SOLD);
+
+            return house;
+        } catch (Exception e) {
+            LOG.error("getSoldHouse", e);
+        }
+
+        return null;
+    }
+
+    public JSONObject getData(String response) {
+        if (response == null) {
+            return null;
+        }
+
+        try {
+            JSONObject json = JSON.parseObject(response);
+            int errorNo = json.getInteger("errno");
+            if (errorNo != 0) {
+                LOG.error("error no {} error msg {}", errorNo, json.getString("error"));
+                return null;
+            }
+
+            return json.getJSONObject("data");
         } catch (Exception e) {
             LOG.error("getData", e);
         }
@@ -246,6 +299,6 @@ public class LjProvider {
 
     public static void main(String[] args) {
         LjProvider provider = new LjProvider();
-        provider.getHouseDetail("101100762406");
+        provider.getHouseDetail("101100728015");
     }
 }

@@ -7,6 +7,7 @@ import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.storage.HouseRedisDao;
 import com.wpf.realestate.storage.RedisDBConfig;
+import com.wpf.realestate.util.TimeUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -18,6 +19,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by wenpengfei on 2016/10/31.
@@ -25,8 +27,6 @@ import java.util.*;
 @Service
 public class PriceChangeService {
     private static final Logger LOG = LoggerFactory.getLogger(PriceChangeService.class);
-
-    private static DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     private HouseRedisDao houseRedisDao;
 
@@ -42,8 +42,8 @@ public class PriceChangeService {
         try {
             long start = System.currentTimeMillis();
 
-            String startDateStr = startDate.toString(dateFormat);
-            String endDateStr = endDate.toString(dateFormat);
+            String startDateStr = TimeUtils.print(startDate);
+            String endDateStr = TimeUtils.print(endDate);
             Map<String, Object> startHouseMap = priceMapCache.get(startDateStr);
             if (startHouseMap == null) {
                 startHouseMap = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, startDateStr);
@@ -117,27 +117,5 @@ public class PriceChangeService {
         }
 
         return null;
-    }
-
-    private String buildPriceStr(Double price) {
-        if (price == null) {
-            return null;
-        }
-
-        return price / 10000 + "万";
-    }
-
-    public static void main(String[] args) throws Exception {
-        RedisDBConfig dbConfig = new RedisDBConfig();
-        JedisConnectionFactory connectionFactory = dbConfig.jedisConnectionFactory();
-        connectionFactory.afterPropertiesSet();
-        RedisTemplate<String, Object> redisTemplate = dbConfig.redisTemplate(connectionFactory);
-        redisTemplate.afterPropertiesSet();
-        HouseRedisDao redisDao = new HouseRedisDao(redisTemplate);
-        PriceChangeService service = new PriceChangeService(redisDao);
-        DateTime startDate = dateFormat.parseDateTime("2016-11-03");
-        DateTime endDate = dateFormat.parseDateTime("2016-11-04");
-        JSONObject resObj = service.priceChanges(startDate, endDate, false);
-        LOG.info("{}", resObj);
     }
 }

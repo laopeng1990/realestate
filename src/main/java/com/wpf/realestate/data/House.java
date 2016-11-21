@@ -1,7 +1,9 @@
 package com.wpf.realestate.data;
 
 import com.alibaba.fastjson.JSON;
+import org.joda.time.DateTime;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,6 +49,16 @@ public class House {
     private Integer hallNum;
     //室数量
     private Integer bedroomNum;
+    //status
+    private HouseStatus houseStatus = HouseStatus.ON_SELL;
+    //sold time
+    private Long soldMils;
+    //sold price
+    private Double soldPrice;
+    //sold source
+    private String soldSource;
+    //disable time
+    private DateTime disableTime;
 
     public String getTitle() {
         return title;
@@ -198,6 +210,46 @@ public class House {
 
     public void setBedroomNum(Integer bedroomNum) {
         this.bedroomNum = bedroomNum;
+    }
+
+    public HouseStatus getHouseStatus() {
+        return houseStatus;
+    }
+
+    public void setHouseStatus(HouseStatus houseStatus) {
+        this.houseStatus = houseStatus;
+    }
+
+    public Long getSoldMils() {
+        return soldMils;
+    }
+
+    public void setSoldMils(Long soldMils) {
+        this.soldMils = soldMils;
+    }
+
+    public Double getSoldPrice() {
+        return soldPrice;
+    }
+
+    public void setSoldPrice(Double soldPrice) {
+        this.soldPrice = soldPrice;
+    }
+
+    public String getSoldSource() {
+        return soldSource;
+    }
+
+    public void setSoldSource(String soldSource) {
+        this.soldSource = soldSource;
+    }
+
+    public DateTime getDisableTime() {
+        return disableTime;
+    }
+
+    public void setDisableTime(DateTime disableTime) {
+        this.disableTime = disableTime;
     }
 
     @Override
