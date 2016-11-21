@@ -1,6 +1,8 @@
 package com.wpf.realestate.data;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.joda.time.DateTime;
 
 import java.util.Date;
@@ -248,6 +250,8 @@ public class House {
         return disableTime;
     }
 
+    @JsonDeserialize
+    @JsonSerialize
     public void setDisableTime(DateTime disableTime) {
         this.disableTime = disableTime;
     }

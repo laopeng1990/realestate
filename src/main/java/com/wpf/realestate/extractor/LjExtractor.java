@@ -129,19 +129,22 @@ public class LjExtractor {
             Map<String, Object> lastHouses = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, lastDateStr);
             Set<String> diffSet = lastHouses.keySet();
             diffSet.removeAll(nowHouses.keySet());
-            LOG.info("{} diff houses", diffSet.size());
+            LOG.info("begin process {} diff houses", diffSet.size());
 
             //miss house
             Map<String, String> prices = new HashMap<>();
             Map<String, String> houseInfos = new HashMap<>();
             //diff house
             Map<String, String> diffHouses = new HashMap<>();
+            int nSoldSize = 0;
+            int nDisableSize = 0;
             for (String houseId : diffSet) {
                 House house = provider.getHouseDetail(houseId);
                 if (house != null) {
                     //还在售
                     prices.put(houseId, house.getPrice().toString());
                     houseInfos.put(houseId, house.toString());
+                    LOG.info("add miss house {}", houseId);
                     continue;
                 }
                 House soldHouse = provider.getSoldHouse(houseId);
@@ -152,27 +155,34 @@ public class LjExtractor {
                         oldHouse.setHouseStatus(soldHouse.getHouseStatus());
                         oldHouse.setSoldMils(soldHouse.getSoldMils());
                         oldHouse.setSoldSource(soldHouse.getSoldSource());
+                        oldHouse.setSoldPrice(soldHouse.getSoldPrice());
                         houseRedisDao.updateHouse(provider.getSource(), oldHouse);
                     } else {
                         houseRedisDao.updateHouse(provider.getSource(), soldHouse);
                     }
+                    LOG.info("add sold house {}", soldHouse.toString());
                     diffHouses.put(houseId, soldHouse.toString());
+                    nSoldSize++;
                     continue;
                 }
                 //停售了 更新house相关字段
                 House oldHouse = houseRedisDao.getHouse(provider.getSource(), houseId);
-                oldHouse.setDisableTime(DateTime.now());
+                oldHouse.setDisableTime(now);
                 oldHouse.setHouseStatus(HouseStatus.DISABLE);
                 houseRedisDao.updateHouse(provider.getSource(), oldHouse);
                 House disableHouse = new House();
                 disableHouse.setDisableTime(DateTime.now());
                 diffHouses.put(houseId, disableHouse.toString());
+                nDisableSize++;
+                LOG.info("add disable house {}", houseId);
             }
 
             houseRedisDao.addDayPrices(provider.getSource(), nowDateStr, prices);
             houseRedisDao.addHouses(provider.getSource(), houseInfos);
 
             houseRedisDao.addHouseDiffs(nowDateStr, diffHouses);
+
+            LOG.info("end process diff houses {} miss house {} sold house {} disable house", houseInfos.size(), nSoldSize, nDisableSize);
         } catch (Exception e) {
             LOG.error("processHouseDiffs", e);
         }
