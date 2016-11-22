@@ -18,6 +18,10 @@ public class TimeUtils {
         return dateTime.toString(TARGET_DATE_FORMATTER);
     }
 
+    public static DateTime parse(String dateTimeStr) throws Exception {
+        return TARGET_DATE_FORMATTER.parseDateTime(dateTimeStr);
+    }
+
     /**
      * 获取距离指定时间hour:minute最小的时间戳
      *

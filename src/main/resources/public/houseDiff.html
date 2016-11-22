@@ -1,0 +1,77 @@
+<div class="col-sm-2">
+    <div  ng-include="'pricesMenu.html'">
+    </div>
+</div>
+<div class="col-sm-10">
+    <div class="row">
+        <div class="col-sm-10">
+            <form class="form-inline row" role="form">
+                <div class="col-sm-10">
+                    <div class="form-group">
+                        <label class="form-label">日期：</label>
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="date" ng-model="date"/>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <button type="submit" class="btn btn-default" ng-click="houseDiff()">提交</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div ng-show="ajax" class="row col-sm-10" style="margin-top:20px">
+        <div class="panel-heading">
+            <h2 class="panel-title">
+                {{sold.length}}个房源成交
+            </h2>
+        </div>
+        <div class="panel-body">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>id</th>
+                    <th>描述</th>
+                    <th>小区</th>
+                    <th>挂牌价</th>
+                    <th>成交价</th>
+                    <th>成交时间</th>
+                    <th>成交源</th>
+                    <th>朝向</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in sold">
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row col-sm-10" style="margin-top:20px">
+        <div class="panel-heading">
+            <h2 class="panel-title">
+                {{disable.length}}个房源停售
+            </h2>
+        </div>
+        <div class="panel-body">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>id</th>
+                    <th>描述</th>
+                    <th>商圈</th>
+                    <th>小区</th>
+                    <th>性质</th>
+                    <th>朝向</th>
+                    <th>楼年代</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in disable">
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+

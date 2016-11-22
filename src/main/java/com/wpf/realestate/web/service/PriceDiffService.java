@@ -1,7 +1,10 @@
 package com.wpf.realestate.web.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConsts;
+import com.wpf.realestate.data.House;
 import com.wpf.realestate.storage.HouseRedisDao;
 import com.wpf.realestate.util.TimeUtils;
 import org.joda.time.DateTime;
@@ -32,9 +35,25 @@ public class PriceDiffService {
             String dateStr = TimeUtils.print(date);
             Set<String> houseIdSet = houseRedisDao.getHouseDiffs(dateStr);
             List<Object> objs = houseRedisDao.getHouses(GlobalConsts.LIANJIA_SOURCE, houseIdSet);
+            JSONArray soldArray = new JSONArray();
+            JSONArray disableArray = new JSONArray();
+            for (Object obj : objs) {
+                House item = JSON.parseObject((String)obj, House.class);
+                switch (item.getHouseStatus()) {
+                    case DISABLE:
+                        disableArray.add(item);
+                        break;
+                    case SOLD:
+                        soldArray.add(item);
+                        break;
+                    default:
+                        LOG.error("other house status in house diff id {}", item.getId());
+                        break;
+                }
+            }
             JSONObject resObj = new JSONObject();
-            resObj.put("size", houseIdSet.size());
-            resObj.put("items", objs);
+            resObj.put("sold", soldArray);
+            resObj.put("disable", disableArray);
 
             LOG.info("price diff {} in {} mils", dateStr, System.currentTimeMillis() - start);
 

@@ -1,9 +1,11 @@
 package com.wpf.realestate.data;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.wpf.realestate.data.serializer.DateTimeDeserializer;
+import com.wpf.realestate.data.serializer.DateTimeSerializer;
 import org.joda.time.DateTime;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -58,6 +60,7 @@ public class House {
     //sold source
     private String soldSource;
     //disable time
+    @JSONField(serializeUsing = DateTimeSerializer.class, deserializeUsing = DateTimeDeserializer.class)
     private DateTime disableTime;
 
     public String getTitle() {

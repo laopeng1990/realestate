@@ -125,8 +125,16 @@ public class LjExtractor {
             DateTime now = DateTime.now();
             String nowDateStr = now.toString(formatter);
             Map<String, Object> nowHouses = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, nowDateStr);
+            if (nowHouses == null || nowHouses.isEmpty()) {
+                LOG.error("get empty today houses");
+                return;
+            }
             String lastDateStr = now.minusDays(1).toString(formatter);
             Map<String, Object> lastHouses = houseRedisDao.getDayPrices(GlobalConsts.LIANJIA_SOURCE, lastDateStr);
+            if (lastHouses == null || lastHouses.isEmpty()) {
+                LOG.error("get empty last day houses");
+                return;
+            }
             Set<String> diffSet = lastHouses.keySet();
             diffSet.removeAll(nowHouses.keySet());
             LOG.info("{} diff houses", diffSet.size());

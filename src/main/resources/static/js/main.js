@@ -20,11 +20,11 @@ myApp.controller('rootCtrl', function() {
         title: '价格变动',
         pageSlug: 'prices'
     }).
-    when('/prices/trans', {
-        controller: 'pricesTrans',
-        templateUrl: '/trans.html',
-        title: '成交查询',
-        pageSlug: 'pricesTrans'
+    when('/house/diff', {
+        controller: 'houseDiff',
+        templateUrl: '/houseDiff.html',
+        title: '成交停售查询',
+        pageSlug: 'houseDiff'
     }).otherwise({
         redirectTo: '/'
     });
@@ -37,25 +37,44 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
     $scope.endDate = $filter('date')(curDate, 'yyyy-MM-dd');
     curDate.setDate(curDate.getDate() - 1);
     $scope.startDate = $filter('date')(curDate, 'yyyy-MM-dd');
-    $scope.pricesSuccess = false;
+    $scope.ajax = false;
     $scope.up = false;
     $http.get("/prices/changes")
         .success(function(res) {
             $scope.size = res.size;
             $scope.items = res.items;
-            $scope.pricesSuccess = true;
+            $scope.ajax = true;
         });
     $scope.pricesChange = function() {
-        $scope.pricesSuccess = false;
+        $scope.ajax = false;
         $http.get("/prices/changes", {params: {"startDate": $scope.startDate, "endDate":$scope.endDate, "up":$scope.up}})
                 .success(function(res) {
                     $scope.size = res.size;
                     $scope.items = res.items;
-                    $scope.pricesSuccess = true;
+                    $scope.ajax = true;
                 });
     }
 });
 
-myApp.controller('pricesTrans', function($scope) {
+myApp.controller('pricesTrans', function($scope, $http, $filter) {
     $scope.menuType = 'pricesTrans';
+    var curDate = new Date();
+    curDate.setDate(curDate.getDate() - 1);
+    $scope.date = $filter('date')(date, 'yyyy-MM-dd');
+    $scope.ajax = false;
+    $http.get("/house/diff")
+        .success(function(res) {
+            $scope.sold = res.sold;
+            $scope.disable = res.disable;
+            $scope.ajax = true;
+        });
+    $scope.houseDiff = function() {
+        $scope.ajax = false;
+        $http.get("/house/diff", {params : {"date":$scope.date}})
+            .success(function(res) {
+                $scope.sold = res.sold;
+                $scope.disable = res.disable;
+                $scope.ajax = true;
+            });
+    };
 });
