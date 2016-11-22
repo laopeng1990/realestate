@@ -48,6 +48,7 @@ public class LjProvider {
         buildHouseListParams();
         buildStatisticsParams();
         buildHouseInfoParams();
+        buildSalesHouseInfoParams();
         buildHeaders();
     }
 

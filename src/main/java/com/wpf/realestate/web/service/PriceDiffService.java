@@ -11,13 +11,16 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Created by wenpengfei on 2016/11/21.
  */
+@Service
 public class PriceDiffService {
     private static final Logger LOG = LoggerFactory.getLogger(PriceDiffService.class);
 
