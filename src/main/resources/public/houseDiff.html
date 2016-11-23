@@ -30,18 +30,26 @@
             <table class="table table-hover">
                 <thead>
                 <tr>
-                    <th>id</th>
-                    <th>描述</th>
-                    <th>小区</th>
-                    <th>挂牌价</th>
-                    <th>成交价</th>
-                    <th>成交时间</th>
-                    <th>成交源</th>
-                    <th>朝向</th>
+                    <th class="col-sm-1 text-center">id</th>
+                    <th class="col-sm-2 text-center">描述</th>
+                    <th class="col-sm-1">小区</th>
+                    <th class="col-sm-1">挂牌价</th>
+                    <th class="col-sm-1">成交价</th>
+                    <th class="col-sm-1">成交时间</th>
+                    <th class="col-sm-1">成交源</th>
+                    <th class="col-sm-1">朝向</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="item in sold">
+                    <td class="text-center">{{item.id}}</td>
+                    <td class="text-center">{{item.desc}}</td>
+                    <td>{{item.communityName}}</td>
+                    <td>{{item.price | housePrice}}</td>
+                    <td>{{item.soldPrice | housePrice}}</td>
+                    <td>{{item.soldMils * 1000 | date: 'yyyy-MM-dd'}}</td>
+                    <td>{{item.soldSource}}</td>
+                    <td>{{item.orientation}}</td>
                 </tr>
                 </tbody>
             </table>
@@ -57,17 +65,24 @@
             <table class="table table-hover">
                 <thead>
                 <tr>
-                    <th>id</th>
-                    <th>描述</th>
-                    <th>商圈</th>
-                    <th>小区</th>
-                    <th>性质</th>
-                    <th>朝向</th>
-                    <th>楼年代</th>
+                    <th class="col-sm-1 text-center">id</th>
+                    <th class="col-sm-1 text-center">描述</th>
+                    <th class="col-sm-1">商圈</th>
+                    <th class="col-sm-1">小区</th>
+                    <th class="col-sm-1">性质</th>
+                    <th class="col-sm-1">朝向</th>
+                    <th class="col-sm-1">楼年代</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="item in disable">
+                    <td class="text-center">{{item.id}}</td>
+                    <td class="text-center">{{item.desc}}</td>
+                    <td>{{item.circleName}}</td>
+                    <td>{{item.communityName}}</td>
+                    <td>{{item.usage}}</td>
+                    <td>{{item.orientation}}</td>
+                    <td>{{item.buildingYear}}</td>
                 </tr>
                 </tbody>
             </table>

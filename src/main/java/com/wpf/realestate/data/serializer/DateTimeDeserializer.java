@@ -16,11 +16,14 @@ public class DateTimeDeserializer implements ObjectDeserializer {
     private static final Logger LOG = LoggerFactory.getLogger(DateTimeDeserializer.class);
 
     public DateTime deserialze(DefaultJSONParser parser, Type type, Object fieldName) {
-        String objStr = (String)parser.parse(fieldName);
+        Object obj = parser.parse(fieldName);
+        if (obj == null) {
+            return null;
+        }
         try {
-            return TimeUtils.parse(objStr);
+            return TimeUtils.parse((String)obj);
         } catch (Exception e) {
-            LOG.error("parse datetime failed {}", objStr, e);
+            LOG.error("parse datetime failed {}", obj, e);
         }
 
         return null;

@@ -54,13 +54,11 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
                     $scope.ajax = true;
                 });
     }
-});
-
-myApp.controller('pricesTrans', function($scope, $http, $filter) {
-    $scope.menuType = 'pricesTrans';
+}).controller('houseDiff', function($scope, $http, $filter) {
+    $scope.menuType = 'houseDiff';
     var curDate = new Date();
     curDate.setDate(curDate.getDate() - 1);
-    $scope.date = $filter('date')(date, 'yyyy-MM-dd');
+    $scope.date = $filter('date')(curDate, 'yyyy-MM-dd');
     $scope.ajax = false;
     $http.get("/house/diff")
         .success(function(res) {
