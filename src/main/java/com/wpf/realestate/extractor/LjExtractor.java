@@ -84,31 +84,7 @@ public class LjExtractor {
                     continue;
                 }
                 //get price list
-                int nSize = dataArray.size();
-                Map<String, String> prices = new HashMap<>();
-                List<String> houseIds = new ArrayList<>();
-                for (int i = 0; i < nSize; ++i) {
-                    JSONObject itemObj = dataArray.getJSONObject(i);
-                    String houseCode = itemObj.getString("house_code");
-                    prices.put(houseCode, itemObj.getString("price"));
-                    houseIds.add(houseCode);
-                }
-                LOG.info("get {} house info offset {}", prices.size(), offset);
-                houseRedisDao.addDayPrices(provider.getSource(), date, prices);
-                //get price detail
-                List<Object> houseInfos = houseRedisDao.getHouses(provider.getSource(), houseIds);
-                Map<String, String> newHouseInfoMap = new HashMap<>();
-                for (int i = 0; i < nSize; ++i) {
-                    Object obj = houseInfos.get(i);
-                    if (obj != null) {
-                        continue;
-                    }
-                    String houseCode = houseIds.get(i);
-                    House house = provider.getHouseDetail(houseCode);
-                    LOG.info("get house detail id {}", houseCode);
-                    newHouseInfoMap.put(houseCode, house.toString());
-                }
-                houseRedisDao.addHouses(provider.getSource(), newHouseInfoMap);
+                processDataArray(dataArray, offset, date);
                 offset += pageSize;
                 if (hasMore == 0) {
                     LOG.info("has no more houses offset {}", offset);
@@ -118,6 +94,50 @@ public class LjExtractor {
                 LOG.error("process while", e);
             }
         }
+
+        for (Integer nullOffset : nullOffsets) {
+            try {
+                JSONObject dataObj = provider.getHouseList(offset, pageSize);
+                if (dataObj == null) {
+                    continue;
+                }
+                JSONArray dataArray = dataObj.getJSONArray("list");
+                if (dataArray == null) {
+                    continue;
+                }
+                processDataArray(dataArray, offset, date);
+            } catch (Exception e) {
+                LOG.error("for nullOffset", e);
+            }
+        }
+    }
+
+    private void processDataArray(JSONArray dataArray, int offset, String date) {
+        int nSize = dataArray.size();
+        Map<String, String> prices = new HashMap<>();
+        List<String> houseIds = new ArrayList<>();
+        for (int i = 0; i < nSize; ++i) {
+            JSONObject itemObj = dataArray.getJSONObject(i);
+            String houseCode = itemObj.getString("house_code");
+            prices.put(houseCode, itemObj.getString("price"));
+            houseIds.add(houseCode);
+        }
+        LOG.info("get {} house info offset {}", prices.size(), offset);
+        houseRedisDao.addDayPrices(provider.getSource(), date, prices);
+        //get price detail
+        List<Object> houseInfos = houseRedisDao.getHouses(provider.getSource(), houseIds);
+        Map<String, String> newHouseInfoMap = new HashMap<>();
+        for (int i = 0; i < nSize; ++i) {
+            Object obj = houseInfos.get(i);
+            if (obj != null) {
+                continue;
+            }
+            String houseCode = houseIds.get(i);
+            House house = provider.getHouseDetail(houseCode);
+            LOG.info("get house detail id {}", houseCode);
+            newHouseInfoMap.put(houseCode, house.toString());
+        }
+        houseRedisDao.addHouses(provider.getSource(), newHouseInfoMap);
     }
 
     public void processHouseDiffs() {
