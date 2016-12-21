@@ -97,7 +97,7 @@ public class LjExtractor {
 
         for (Integer nullOffset : nullOffsets) {
             try {
-                JSONObject dataObj = provider.getHouseList(offset, pageSize);
+                JSONObject dataObj = provider.getHouseList(nullOffset, pageSize);
                 if (dataObj == null) {
                     continue;
                 }
