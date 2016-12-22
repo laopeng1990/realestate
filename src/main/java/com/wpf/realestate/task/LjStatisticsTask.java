@@ -20,7 +20,7 @@ public class LjStatisticsTask extends BaseTask {
 
     @Override
     public String taskName() {
-        return "ljStatisticTask";
+        return "ljStatisticsTask";
     }
 
     @Override
