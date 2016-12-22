@@ -44,10 +44,13 @@ public class LjExtractor {
             return;
         }
         isRun.set(true);
-        processStatistics();
         processHouseInfos();
         processHouseDiffs();
         isRun.set(false);
+    }
+
+    public void runStatistics() {
+        processStatistics();
     }
 
     public void processStatistics() {
@@ -98,6 +101,7 @@ public class LjExtractor {
         for (Integer nullOffset : nullOffsets) {
             try {
                 JSONObject dataObj = provider.getHouseList(nullOffset, pageSize);
+                LOG.info("process null offset {] data {}", nullOffset, dataObj);
                 if (dataObj == null) {
                     continue;
                 }
