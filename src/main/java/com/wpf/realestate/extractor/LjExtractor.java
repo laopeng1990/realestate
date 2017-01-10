@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class LjExtractor {
     private static final Logger LOG = LoggerFactory.getLogger(LjExtractor.class);
 
+    private static final int MAX_DIFF_SIZE = 2000;
+
     private static DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     private HouseRedisDao houseRedisDao;
@@ -54,11 +56,15 @@ public class LjExtractor {
     }
 
     public void processStatistics() {
-        LjDayData dayData = provider.getStatistics();
-        DateTime dateTime = DateTime.now();
-        String date = dateTime.toString(formatter);
-        houseRedisDao.addStatistics(date, provider.getSource(), dayData);
-        LOG.info("{} statistics data {}", date, JSON.toJSONString(dayData));
+        try {
+            LjDayData dayData = provider.getStatistics();
+            DateTime dateTime = DateTime.now();
+            String date = dateTime.toString(formatter);
+            houseRedisDao.addStatistics(date, provider.getSource(), dayData);
+            LOG.info("{} statistics data {}", date, JSON.toJSONString(dayData));
+        } catch (Exception e) {
+            LOG.error("processStatistics", e);
+        }
     }
 
     public void processHouseInfos() {
@@ -161,6 +167,12 @@ public class LjExtractor {
             }
             Set<String> diffSet = lastHouses.keySet();
             diffSet.removeAll(nowHouses.keySet());
+            if (diffSet.size() > MAX_DIFF_SIZE) {
+                LOG.info("{} diff houses too many diff houses must reprocess house infos", diffSet.size());
+                processHouseInfos();
+                processHouseDiffs();
+                return;
+            }
             LOG.info("begin process {} diff houses", diffSet.size());
 
             //miss house

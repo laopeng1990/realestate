@@ -34,6 +34,10 @@ public class GlobalConfig {
     public static final String PROVIDER_LJ_APPID = "providers.lj.app-id";
     public static final String PROVIDER_LJ_APPSECRET = "providers.lj.app-secret";
 
+    //device
+    public static final String DEVICE_USER_AGENT = "device.userAgent";
+    public static final String DEVICE_ID = "device.id";
+
     private static Map<String, TaskConfig> taskConfigMap;
 
     static {

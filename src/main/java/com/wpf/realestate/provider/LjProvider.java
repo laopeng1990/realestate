@@ -86,11 +86,13 @@ public class LjProvider {
 
     private void buildHeaders() {
         headers = new HashMap<>();
-        headers.put("User-Agent", "HomeLink7.1.1;Coolpad Coolpad+8297; Android 4.4.2");
+        String userAgent = ConfigUtils.getString(GlobalConfig.config, GlobalConfig.DEVICE_USER_AGENT);
+        headers.put("User-Agent", userAgent);
         String version = ConfigUtils.getString(GlobalConfig.config, GlobalConfig.PROVIDER_LJ_VERSION);
         headers.put("Lianjia-Version", version);
         headers.put("Host", "app.api.lianjia.com");
-        headers.put("Lianjia-Device-Id", "863777022100258");
+        String deviceId = ConfigUtils.getString(GlobalConfig.config, GlobalConfig.DEVICE_ID);
+        headers.put("Lianjia-Device-Id", deviceId);
         headers.put("Connection", "Keep-Alive");
         headers.put("Accept-Encoding", "gzip");
     }
@@ -234,7 +236,7 @@ public class LjProvider {
                     .headers(headers).connectTimeout(2000).readTimeout(2000);
             for (int i = 0; i < 3; ++i) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(200 + i * 500);
                     response = requestBuilder.build().execute();
                 } catch (Exception e) {
                     LOG.error("http exception", e);

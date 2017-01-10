@@ -40,4 +40,8 @@
             <period>1</period>
         </task>
     </tasks>
+    <device>
+        <User-Agent>HomeLink7.1.1;Letv X500; Android 5.0.2</User-Agent>
+        <deviceId>863777033100258</deviceId>
+    </device>
 </config>

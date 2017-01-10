@@ -40,4 +40,8 @@
             <period>1</period>
         </task>
     </tasks>
+    <device>
+        <userAgent>HomeLink7.1.1;Coolpad Coolpad+8297; Android 4.4.2</userAgent>
+        <id>863777022100258</id>
+    </device>
 </config>
