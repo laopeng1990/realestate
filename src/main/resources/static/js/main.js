@@ -42,7 +42,8 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
     $http.get("/prices/changes")
         .success(function(res) {
             $scope.size = res.size;
-            $scope.items = res.items;
+            $scope.houseItems = res.houseItems;
+            $scope.circleItems = res.circleItems;
             $scope.ajax = true;
         });
     $scope.pricesChange = function() {
@@ -50,7 +51,8 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
         $http.get("/prices/changes", {params: {"startDate": $scope.startDate, "endDate":$scope.endDate, "up":$scope.up}})
                 .success(function(res) {
                     $scope.size = res.size;
-                    $scope.items = res.items;
+                    $scope.houseItems = res.houseItems;
+                    $scope.circleItems = res.circleItems;
                     $scope.ajax = true;
                 });
     }
@@ -64,6 +66,7 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
         .success(function(res) {
             $scope.sold = res.sold;
             $scope.disable = res.disable;
+            $scope.circle = res.circle;
             $scope.ajax = true;
         });
     $scope.houseDiff = function() {
@@ -72,6 +75,7 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
             .success(function(res) {
                 $scope.sold = res.sold;
                 $scope.disable = res.disable;
+                $scope.circle = res.circle;
                 $scope.ajax = true;
             });
     };

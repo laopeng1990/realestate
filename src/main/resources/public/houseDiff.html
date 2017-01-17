@@ -20,6 +20,18 @@
             </form>
         </div>
     </div>
+    <div class="row col-sm-10" style="margin-top:20px">
+        <div class="panel-heading">
+            <h2 class="panel-title">
+                {{circle.length}}个商圈有停售
+            </h2>
+        </div>
+        <div class="panel-body">
+            <span ng-repeat="item in circle" style="margin-right:10px">
+                {{item.name}}({{item.num}})
+            </span>
+        </div>
+    </div>
     <div ng-show="ajax" class="row col-sm-10" style="margin-top:20px">
         <div class="panel-heading">
             <h2 class="panel-title">

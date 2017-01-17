@@ -6,20 +6,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.storage.HouseRedisDao;
-import com.wpf.realestate.storage.RedisDBConfig;
 import com.wpf.realestate.util.TimeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by wenpengfei on 2016/10/31.
@@ -93,6 +88,7 @@ public class PriceChangeService {
             }
 
             List<Object> houseInfos = houseRedisDao.getHouses(GlobalConsts.LIANJIA_SOURCE, houseIds);
+            Map<String, Integer> circleChange = new HashMap<>();
             for (int i = 0; i < size; ++i) {
                 if (houseInfos.get(i) == null) {
                     continue;
@@ -104,11 +100,38 @@ public class PriceChangeService {
                 item.put("community", house.getCommunityName());
                 Double changes = item.getDouble("changes");
                 item.put("unitChanges", changes / house.getArea());
+                String circleName = house.getCircleName();
+                if (circleName == null || StringUtils.isBlank(circleName)) {
+                    circleName = GlobalConsts.UNKNOWN_CIRCLE_NAME;
+                }
+                Integer circleNum = circleChange.get(circleName);
+                if (circleNum == null) {
+                    circleNum = 0;
+                }
+                circleNum++;
+                circleChange.put(house.getCircleName(), circleNum);
+            }
+
+            List<Map.Entry<String, Integer>> entryList = new ArrayList<>(circleChange.entrySet());
+            Collections.sort(entryList, new Comparator<Map.Entry<String, Integer>>() {
+                @Override
+                public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                    return o2.getValue() - o1.getValue();
+                }
+            });
+
+            JSONArray circleChangeArray = new JSONArray();
+            for (Map.Entry<String, Integer> entry : entryList) {
+                JSONObject item = new JSONObject();
+                item.put("name", entry.getKey());
+                item.put("num", entry.getValue());
+                circleChangeArray.add(item);
             }
 
             JSONObject resObj = new JSONObject();
             resObj.put("size", size);
-            resObj.put("items", array);
+            resObj.put("houseItems", array);
+            resObj.put("circleItems", circleChangeArray);
 
             LOG.info("start {} end {} price changes in {} mils", startDateStr, endDateStr, System.currentTimeMillis() - start);
             return resObj;
