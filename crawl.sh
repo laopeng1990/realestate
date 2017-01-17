@@ -25,7 +25,8 @@ start)
                 nohup mvn spring-boot:run 2>&1 > /dev/null &
         elif [ $2 = "crawl" ]
         then
-                nohup mvn exec:java -Dexec.mainClass="com.wpf.realestate.server.CrawlServer" 2>&1 > /dev/null &
+                JVM_ARGS = "-Xmx2048m -XX:PermSize=256M -XX:MaxPermSize=512M"
+                nohup mvn exec:exec -Dexec.executable="java" -Dexec.args="$JVM_ARGS -cp %classpath com.wpf.realestate.server.CrawlServer" 2>&1 > /dev/null &
         else
                 rm config/config.xml
                 echo $USAGE_MSG 2>&1
