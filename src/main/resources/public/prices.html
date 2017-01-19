@@ -37,13 +37,15 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">
-                    {{circleItems.length}}个商圈有价格变动
+                    {{circle.length}}个商圈有价格变动
                 </h3>
             </div>
             <div class="panel-body">
-                <span ng-repeat="item in circleItems" style="margin-right:10px">
-                    {{item.name}}({{item.num}})
-                </span>
+                <div ng-repeat="item in circle" style="display:inline-block;margin-right:5px;margin-top:5px">
+                    <button type="button" class="btn btn-info" ng-click="showCircleDetail(item.value)">
+                        {{item.name}}({{item.value.length}})
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -61,8 +63,8 @@
                         <th class="col-sm-1 text-center">id</th>
                         <th class="col-sm-1 text-center">描述</th>
                         <th class="col-sm-1">小区</th>
-                        <th class="col-sm-1">{{startDate}}</th>
-                        <th class="col-sm-1">{{endDate}}</th>
+                        <th class="col-sm-1">{{startDate | date:'yyyy-MM-dd'}}</th>
+                        <th class="col-sm-1">{{endDate | date:'yyyy-MM-dd'}}</th>
                         <th class="col-sm-1">总价变化</th>
                         <th class="col-sm-1">单位价格变化</th>
                     </tr>

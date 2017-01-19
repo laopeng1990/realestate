@@ -17,3 +17,11 @@ div#list {
     width:92%;
     float:right;
 }
+
+.modal-full {
+    width:auto
+}
+
+.modal-dialog {
+    width:80%
+}

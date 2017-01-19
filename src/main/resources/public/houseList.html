@@ -1,0 +1,26 @@
+<div>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th class="text-center">链接</th>
+            <th class="text-center">描述</th>
+            <th>小区</th>
+            <th>商圈</th>
+            <th>面积</th>
+            <th>价格</th>
+            <th>标签</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="item in items">
+            <td class="text-center">{{item.id}}</td>
+            <td class="text-center">{{item.desc}}</td>
+            <td>{{item.communityName}}</td>
+            <td>{{item.circleName}}</td>
+            <td>{{item.area}}</td>
+            <td>{{item.price}}</td>
+            <td>{{item.tags}}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>

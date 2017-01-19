@@ -27,9 +27,11 @@
             </h2>
         </div>
         <div class="panel-body">
-            <span ng-repeat="item in circle" style="margin-right:10px">
-                {{item.name}}({{item.num}})
-            </span>
+            <div ng-repeat="item in circle" style="display:inline-block;margin-right:5px;margin-top:5px">
+                <button type="button" class="btn btn-info" ng-click="showCircleDetail(item.value)">
+                    {{item.name}}({{item.value.length}})
+                </button>
+            </div>
         </div>
     </div>
     <div ng-show="ajax" class="row col-sm-10" style="margin-top:20px">

@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,37 +41,40 @@ public class PriceDiffService {
             List<Object> objs = houseRedisDao.getHouses(GlobalConsts.LIANJIA_SOURCE, houseIdSet);
             JSONArray soldArray = new JSONArray();
             JSONArray disableArray = new JSONArray();
-            Map<String, Integer> circleMap = new HashMap<>();
-            for (Object obj : objs) {
-                House item = JSON.parseObject((String)obj, House.class);
-                switch (item.getHouseStatus()) {
-                    case DISABLE:
-                        disableArray.add(item);
-                        break;
-                    case SOLD:
-                        soldArray.add(item);
-                        break;
-                    default:
-                        LOG.error("other house status in house diff id {}", item.getId());
-                        break;
+            Map<String, List<House>> circleMap = new HashMap<>();
+            if (objs != null) {
+                for (Object obj : objs) {
+                    House item = JSON.parseObject((String)obj, House.class);
+                    switch (item.getHouseStatus()) {
+                        case DISABLE:
+                            disableArray.add(item);
+                            break;
+                        case SOLD:
+                            soldArray.add(item);
+                            break;
+                        default:
+                            LOG.error("other house status in house diff id {}", item.getId());
+                            break;
+                    }
+                    String circleName = item.getCircleName();
+                    if (circleName == null || StringUtils.isBlank(circleName)) {
+                        circleName = GlobalConsts.UNKNOWN_CIRCLE_NAME;
+                    }
+                    List<House> houseList = circleMap.get(item.getCircleName());
+                    if (houseList == null) {
+                        houseList = new ArrayList<>();
+                        circleMap.put(circleName, houseList);
+                    }
+                    houseList.add(item);
                 }
-                String circleName = item.getCircleName();
-                if (circleName == null || StringUtils.isBlank(circleName)) {
-                    circleName = GlobalConsts.UNKNOWN_CIRCLE_NAME;
-                }
-                Integer num = circleMap.get(item.getCircleName());
-                if (num == null) {
-                    num = 0;
-                }
-                num++;
-                circleMap.put(circleName, num);
             }
 
-            List<Map.Entry<String, Integer>> list = new ArrayList<>(circleMap.entrySet());
-            Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+
+            List<Map.Entry<String, List<House>>> list = new ArrayList<>(circleMap.entrySet());
+            Collections.sort(list, new Comparator<Map.Entry<String, List<House>>>() {
                 @Override
-                public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
-                    return o2.getValue() - o1.getValue();
+                public int compare(Map.Entry<String, List<House>> o1, Map.Entry<String, List<House>> o2) {
+                    return o2.getValue().size() - o1.getValue().size();
                 }
             });
 
@@ -78,10 +82,10 @@ public class PriceDiffService {
             resObj.put("sold", soldArray);
             resObj.put("disable", disableArray);
             JSONArray circleArray = new JSONArray();
-            for (Map.Entry<String, Integer> entry : list) {
+            for (Map.Entry<String, List<House>> entry : list) {
                 JSONObject item = new JSONObject();
                 item.put("name", entry.getKey());
-                item.put("num", entry.getValue());
+                item.put("value", entry.getValue());
                 circleArray.add(item);
             }
             resObj.put("circle", circleArray);

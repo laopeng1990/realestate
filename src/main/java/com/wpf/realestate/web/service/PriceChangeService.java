@@ -88,7 +88,7 @@ public class PriceChangeService {
             }
 
             List<Object> houseInfos = houseRedisDao.getHouses(GlobalConsts.LIANJIA_SOURCE, houseIds);
-            Map<String, Integer> circleChange = new HashMap<>();
+            Map<String, List<House>> circleChange = new HashMap<>();
             for (int i = 0; i < size; ++i) {
                 if (houseInfos.get(i) == null) {
                     continue;
@@ -104,34 +104,34 @@ public class PriceChangeService {
                 if (circleName == null || StringUtils.isBlank(circleName)) {
                     circleName = GlobalConsts.UNKNOWN_CIRCLE_NAME;
                 }
-                Integer circleNum = circleChange.get(circleName);
-                if (circleNum == null) {
-                    circleNum = 0;
+                List<House> houseList = circleChange.get(circleName);
+                if (houseList == null) {
+                    houseList = new ArrayList<>();
+                    circleChange.put(circleName, houseList);
                 }
-                circleNum++;
-                circleChange.put(house.getCircleName(), circleNum);
+                houseList.add(house);
             }
 
-            List<Map.Entry<String, Integer>> entryList = new ArrayList<>(circleChange.entrySet());
-            Collections.sort(entryList, new Comparator<Map.Entry<String, Integer>>() {
+            List<Map.Entry<String, List<House>>> entryList = new ArrayList<>(circleChange.entrySet());
+            Collections.sort(entryList, new Comparator<Map.Entry<String, List<House>>>() {
                 @Override
-                public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
-                    return o2.getValue() - o1.getValue();
+                public int compare(Map.Entry<String, List<House>> o1, Map.Entry<String, List<House>> o2) {
+                    return o2.getValue().size() - o1.getValue().size();
                 }
             });
 
             JSONArray circleChangeArray = new JSONArray();
-            for (Map.Entry<String, Integer> entry : entryList) {
+            for (Map.Entry<String, List<House>> entry : entryList) {
                 JSONObject item = new JSONObject();
                 item.put("name", entry.getKey());
-                item.put("num", entry.getValue());
+                item.put("value", entry.getValue());
                 circleChangeArray.add(item);
             }
 
             JSONObject resObj = new JSONObject();
             resObj.put("size", size);
             resObj.put("houseItems", array);
-            resObj.put("circleItems", circleChangeArray);
+            resObj.put("circle", circleChangeArray);
 
             LOG.info("start {} end {} price changes in {} mils", startDateStr, endDateStr, System.currentTimeMillis() - start);
             return resObj;

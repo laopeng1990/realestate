@@ -1,4 +1,4 @@
-var myApp=angular.module('houseApp', ['ngRoute']);
+var myApp=angular.module('houseApp', ['ngRoute','ui.bootstrap']);
 myApp.filter("housePrice", function() {
     return function(input) {
         return input / 10000 + "万";
@@ -34,34 +34,46 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
     $scope.menuType = 'prices';
     var curDate = new Date();
     curDate.setDate(curDate.getDate() - 1);
-    $scope.endDate = $filter('date')(curDate, 'yyyy-MM-dd');
-    curDate.setDate(curDate.getDate() - 1);
-    $scope.startDate = $filter('date')(curDate, 'yyyy-MM-dd');
+    $scope.endDate = curDate;
+    var startDate = new Date();
+    startDate.setDate(curDate.getDate() - 1);
+    $scope.startDate = startDate;
     $scope.ajax = false;
     $scope.up = false;
     $http.get("/prices/changes")
         .success(function(res) {
             $scope.size = res.size;
             $scope.houseItems = res.houseItems;
-            $scope.circleItems = res.circleItems;
+            $scope.circle = res.circle;
             $scope.ajax = true;
         });
     $scope.pricesChange = function() {
         $scope.ajax = false;
-        $http.get("/prices/changes", {params: {"startDate": $scope.startDate, "endDate":$scope.endDate, "up":$scope.up}})
+        var startDateStr = $filter('date')($scope.startDate, 'yyyy-MM-dd');
+        var endDateStr = $filter('date')($scope.endDate, 'yyyy-MM-dd');
+        $http.get("/prices/changes", {params: {"startDate": startDateStr, "endDate":endDateStr, "up":$scope.up}})
                 .success(function(res) {
                     $scope.size = res.size;
                     $scope.houseItems = res.houseItems;
-                    $scope.circleItems = res.circleItems;
+                    $scope.circle = res.circle;
                     $scope.ajax = true;
                 });
     }
-}).controller('houseDiff', function($scope, $http, $filter) {
+}).controller('houseDiff', function($scope, $http, $filter, $modal) {
     $scope.menuType = 'houseDiff';
     var curDate = new Date();
     curDate.setDate(curDate.getDate() - 1);
-    $scope.date = $filter('date')(curDate, 'yyyy-MM-dd');
+    $scope.date = curDate;
     $scope.ajax = false;
+    $scope.showCircleDetail = function(houseList) {
+        var dialogScope = $scope.$new();
+        dialogScope.items = houseList;
+        var dialog = $modal.open({
+            templateUrl:'houseList.html',
+            scope:dialogScope,
+            windowClass:'modal-full'
+        });
+    };
     $http.get("/house/diff")
         .success(function(res) {
             $scope.sold = res.sold;
@@ -71,7 +83,7 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
         });
     $scope.houseDiff = function() {
         $scope.ajax = false;
-        $http.get("/house/diff", {params : {"date":$scope.date}})
+        $http.get("/house/diff", {params : {"date":$filter('date')($scope.date, 'yyyy-MM-dd')}})
             .success(function(res) {
                 $scope.sold = res.sold;
                 $scope.disable = res.disable;

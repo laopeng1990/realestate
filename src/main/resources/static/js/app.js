@@ -1,4 +1,4 @@
-var houseApp = angular.module('houseApp', ['ngRoute']);
+var houseApp = angular.module('houseApp', ['ngRoute','ui.bootstrap']);
 houseApp.config(function($routeProvider) {
             $routeProvider.
             when('/prices', {
