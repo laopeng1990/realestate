@@ -30,7 +30,7 @@ myApp.controller('rootCtrl', function() {
     });
 });
 
-myApp.controller('pricesChange', function($scope, $http, $filter) {
+myApp.controller('pricesChange', function($scope, $http, $filter, $modal) {
     $scope.menuType = 'prices';
     var curDate = new Date();
     curDate.setDate(curDate.getDate() - 1);
@@ -40,6 +40,15 @@ myApp.controller('pricesChange', function($scope, $http, $filter) {
     $scope.startDate = startDate;
     $scope.ajax = false;
     $scope.up = false;
+    $scope.showCircleDetail = function(houseList) {
+        var dialogScope = $scope.$new();
+        dialogScope.items = houseList;
+        var dialog = $modal.open({
+            templateUrl:'houseList.html',
+            scope:dialogScope,
+            windowClass:'modal-full'
+        });
+    };
     $http.get("/prices/changes")
         .success(function(res) {
             $scope.size = res.size;
