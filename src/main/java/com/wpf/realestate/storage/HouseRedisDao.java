@@ -1,10 +1,10 @@
 package com.wpf.realestate.storage;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.data.LjDayData;
-import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -172,28 +172,19 @@ public class HouseRedisDao {
         }
     }
 
-    public Map<String, LjDayData> getStatistics(String source, List<String> dates) {
-        if (source == null || dates == null || dates.isEmpty()) {
+    public LjDayData getStatistics(String source, String date) {
+        if (source == null || date == null) {
             return null;
         }
 
         try {
-            String key = GlobalConsts.DAY_STATISTICS_PREFIX + ":" + source;
+            String key = GlobalConsts.DAY_STATISTICS_PREFIX + source;
             BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
-            List<Object> objs = hashOps.multiGet(dates);
-            Map<String, LjDayData> dayDataMap = new HashMap<>();
-            int nSize = dates.size();
-            for (int i = 0; i < nSize; ++i) {
-                String itemObj = (String)objs.get(i);
-                if (itemObj == null) {
-                    dayDataMap.put(dates.get(i), null);
-                    continue;
-                }
-                LjDayData item = JSON.parseObject(itemObj, LjDayData.class);
-                dayDataMap.put(dates.get(i), item);
+            Object obj = hashOps.get(date);
+            if (obj != null) {
+                String itemStr = (String)obj;
+                return JSON.parseObject(itemStr, LjDayData.class);
             }
-
-            return dayDataMap;
         } catch (Exception e) {
             LOG.error("getStatistics", e);
         }
@@ -203,5 +194,41 @@ public class HouseRedisDao {
 
     private String buildRedisPriceKey(String source, String date) {
         return new StringBuilder(GlobalConsts.PRICE_INFO_PREFIX).append(source).append(":").append(date).toString();
+    }
+
+    public Map<String, Object> getAllStatistics(String source) {
+        try {
+            String key = GlobalConsts.DAY_STATISTICS_PREFIX + source;
+            BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
+
+            return hashOps.entries();
+        } catch (Exception e) {
+            LOG.error("getAllStatistics", e);
+        }
+
+        return null;
+    }
+
+    public void addWeekStatistics(String source, String weekStr, JSONObject weekData) {
+        try {
+            String key = GlobalConsts.WEEK_STATISTICS_PREFIX + source;
+            BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
+            hashOps.put(weekStr, weekData.toString());
+        } catch (Exception e) {
+            LOG.error("addWeekStatistics", e);
+        }
+    }
+
+    public Map<String, Object> getAllWeekStatistics(String source) {
+        try {
+            String key = GlobalConsts.WEEK_STATISTICS_PREFIX + source;
+            BoundHashOperations<String, String, Object> hashOps = redisTemplate.boundHashOps(key);
+
+            return hashOps.entries();
+        } catch (Exception e) {
+            LOG.error("getAllWeekStatistics", e);
+        }
+
+        return null;
     }
 }

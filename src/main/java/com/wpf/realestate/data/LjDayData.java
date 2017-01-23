@@ -1,12 +1,14 @@
 package com.wpf.realestate.data;
 
 import com.alibaba.fastjson.JSON;
+import org.joda.time.DateTime;
 
 /**
  * Created by laopengwork on 2016/10/30.
  */
 public class LjDayData {
 
+    private DateTime date;
     //成交量
     private Integer daySales;
     //带看量
@@ -35,6 +37,14 @@ public class LjDayData {
     private Double momHouse;
     //当天客源数
     private Integer customAmount;
+
+    public DateTime getDate() {
+        return date;
+    }
+
+    public void setDate(DateTime date) {
+        this.date = date;
+    }
 
     public Integer getDaySales() {
         return daySales;

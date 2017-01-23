@@ -30,6 +30,8 @@ public class LjExtractor {
 
     private static DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
+    private static DateTimeFormatter weekFormatter = DateTimeFormat.forPattern("yyyy/MM/dd");
+
     private HouseRedisDao houseRedisDao;
     private LjProvider provider;
     private AtomicBoolean isRun;
@@ -53,6 +55,42 @@ public class LjExtractor {
 
     public void runStatistics() {
         processStatistics();
+    }
+
+    public void runWeekStatistics() {
+        try {
+            DateTime now = DateTime.now();
+            DateTime iterDay = now.minusWeeks(1);
+            int sales = 0;
+            int showAmount = 0;
+            int customerAmount = 0;
+            int houseAmount = 0;
+            while (iterDay.compareTo(now) < 0) {
+                String dayStr = formatter.print(iterDay);
+                LjDayData dayData = houseRedisDao.getStatistics(GlobalConsts.LIANJIA_SOURCE, dayStr);
+                if (dayData == null) {
+                    iterDay = iterDay.plusDays(1);
+                    continue;
+                }
+                sales += dayData.getDaySales();
+                showAmount += dayData.getShowAmount();
+                customerAmount += dayData.getCustomAmount();
+                houseAmount += dayData.getHouseAmount();
+                iterDay = iterDay.plusDays(1);
+            }
+            JSONObject weekObj = new JSONObject();
+            weekObj.put("sales", sales);
+            weekObj.put("showAmount", showAmount);
+            weekObj.put("customAmount", customerAmount);
+            weekObj.put("houseAmount", houseAmount);
+
+            String startDayStr = weekFormatter.print(now.minusWeeks(1));
+            String endDayStr = weekFormatter.print(now.minusDays(1));
+            houseRedisDao.addWeekStatistics(GlobalConsts.LIANJIA_SOURCE, startDayStr + "-" + endDayStr, weekObj);
+            LOG.info("end process week statistics start {} end {} data {}", startDayStr, endDayStr, weekObj);
+        } catch (Exception e) {
+            LOG.error("runWeekStatistics", e);
+        }
     }
 
     public void processStatistics() {

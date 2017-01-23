@@ -1,0 +1,26 @@
+{
+  "sales":{
+    "title":"每日成交量",
+    "subTitle":"Source:lj.com",
+    "xKey":"date",
+    "yTitle":"成交量",
+    "seriesKeys":["sales"],
+    "seriesNames":["成交量"]
+  },
+  "showAmount":{
+    "title":"带看量",
+    "subTitle":"Source:lj.com",
+    "xKey":"date",
+    "yTitle":"带看",
+    "seriesKeys":["showAmount"],
+    "seriesNames":["带看"]
+  },
+  "customer-house":{
+    "title":"客源/房源数",
+    "subTitle":"Source:lj.com",
+    "xKey":"date",
+    "yTitle":"",
+    "seriesKeys":["houseAmount", "customAmount"],
+    "seriesNames":["房源数", "客源数"]
+  }
+}

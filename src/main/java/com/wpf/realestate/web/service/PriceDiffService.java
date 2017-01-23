@@ -7,12 +7,10 @@ import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.storage.HouseRedisDao;
 import com.wpf.realestate.util.TimeUtils;
-import org.apache.commons.collections.ArrayStack;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

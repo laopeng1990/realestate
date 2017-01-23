@@ -11,6 +11,11 @@ houseApp.config(function($routeProvider) {
                 title: '成交查询',
                 controller: 'transCtrl'
             }).
+            when('/statistics', {
+                templateUrl: '/statistics.html',
+                title: '统计信息',
+                controller: 'statisticsCtrl'
+            }).
             otherwise({
                 redirectTo:'/'
             });

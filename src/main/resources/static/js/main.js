@@ -25,7 +25,12 @@ myApp.controller('rootCtrl', function() {
         templateUrl: '/houseDiff.html',
         title: '成交停售查询',
         pageSlug: 'houseDiff'
-    }).otherwise({
+    }).when('/statistics', {
+        controller: 'statistics',
+        templateUrl: '/statistics.html',
+        title: '统计信息',
+        pageSlug: 'statistics'
+}).otherwise({
         redirectTo: '/'
     });
 });
@@ -99,5 +104,14 @@ myApp.controller('pricesChange', function($scope, $http, $filter, $modal) {
                 $scope.circle = res.circle;
                 $scope.ajax = true;
             });
+    };
+}).controller('statistics', function($scope, $http, $filter) {
+    $http.get("/house/statistics")
+        .success(function(res) {
+            $scope.charts = res.charts;
+        });
+    $scope.showCharts = function(data) {
+        $("#" + data.name).highcharts(data.data);
+        return true;
     };
 });
