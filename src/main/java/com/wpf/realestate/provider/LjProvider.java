@@ -8,6 +8,7 @@ import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.data.HouseStatus;
 import com.wpf.realestate.data.LjDayData;
+import com.wpf.realestate.data.LjDistrictDayData;
 import com.wpf.realestate.util.AuthUtils;
 import com.wpf.realestate.util.ConfigUtils;
 import com.wpf.realestate.util.http.HttpMethod;
@@ -28,11 +29,15 @@ public class LjProvider {
 
     private static final String LJ_HOUSE_LIST = "http://app.api.lianjia.com/house/ershoufang/searchv3";
 
+    private static final String LJ_STATISTICS_V2 = "http://app.api.lianjia.com/house/fangjia/searchv2";
+
     private static final String LJ_STATISTICS_URL = "http://app.api.lianjia.com/house/fangjia/search";
 
     private static final String LJ_HOUSE_DETAIL = "http://app.api.lianjia.com/house/ershoufang/detailV3";
 
     private static final String LJ_SOLD_HOUSE_DETAIL = "http://app.api.lianjia.com/house/chengjiao/detail";
+
+    private static final String LJ_DISTRICT_MAP = "http://app.api.lianjia.com/house/fangjia/pricemapv2";
 
     private Map<String, String> houseListParams;
 
@@ -177,6 +182,67 @@ public class LjProvider {
         return null;
     }
 
+    public List<LjDistrictDayData> getDistrictStatistics() {
+        try {
+            String response = getResponse(LJ_DISTRICT_MAP, soldHouseInfoParams, headers);
+            JSONObject jsonObj = JSON.parseObject(response);
+            JSONObject dataObj = jsonObj.getJSONObject("data");
+            JSONArray listArray = dataObj.getJSONArray("list");
+            List<LjDistrictDayData> districtDayDatas = new ArrayList<>();
+            for (int i = 0; i < listArray.size(); ++i) {
+                JSONObject item = listArray.getJSONObject(i);
+                String id = item.getString("id");
+                LjDistrictDayData dayData = getDistrict(id);
+                districtDayDatas.add(dayData);
+            }
+
+            return districtDayDatas;
+        } catch (Exception e) {
+            LOG.error("getTransSize", e);
+        }
+
+        return null;
+    }
+
+    public LjDistrictDayData getDistrict(String districtId) {
+        try {
+            Map<String, String> paramsMap = new HashMap<>(soldHouseInfoParams);
+            paramsMap.put("district_id", districtId);
+            String response = getResponse(LJ_STATISTICS_V2, paramsMap, headers);
+            JSONObject json = JSON.parseObject(response);
+            JSONObject dataObj = json.getJSONObject("data");
+            JSONObject cardObj = dataObj.getJSONObject("card");
+            JSONArray dataArray = cardObj.getJSONArray("bottom_unit");
+            LjDistrictDayData dayData = new LjDistrictDayData();
+            String displayName = cardObj.getString("display_name");
+            dayData.setDisplayName(displayName);
+            for (int i = 0; i < dataArray.size(); ++i) {
+                JSONObject itemObj = dataArray.getJSONObject(i);
+                String title = itemObj.getString("title");
+                String numStr = itemObj.getString("num");
+                Integer num = 0;
+                if (numStr == null || "--".equals(numStr)) {
+                    LOG.warn("district {} title {} num {}", displayName, title, numStr);
+                } else {
+                    num = Integer.valueOf(numStr);
+                }
+                if (title.contains("成交")) {
+                    dayData.setDaySales(num);
+                } else if (title.contains("带看")) {
+                    dayData.setShowAmount(num);
+                }
+            }
+            dayData.setDistrictId(districtId);
+
+            LOG.info("get district data {}", dayData);
+            return dayData;
+        } catch (Exception e) {
+            LOG.error("getDistrict", e);
+        }
+
+        return null;
+    }
+
     public LjDayData getStatistics() {
         try {
             String response = getResponse(LJ_STATISTICS_URL, houseStatisticsParam, headers);
@@ -234,7 +300,7 @@ public class LjProvider {
             headers.put("Authorization", auth);
             HttpRequestBuilder requestBuilder = new HttpRequestBuilder(HttpMethod.HTTP_GET, url).params(params)
                     .headers(headers).connectTimeout(2000).readTimeout(2000);
-            for (int i = 0; i < 3; ++i) {
+            for (int i = 0; i < 4; ++i) {
                 try {
                     Thread.sleep(200 + i * 500);
                     response = requestBuilder.build().execute();
@@ -302,6 +368,6 @@ public class LjProvider {
 
     public static void main(String[] args) {
         LjProvider provider = new LjProvider();
-        provider.getHouseDetail("101100728015");
+        provider.getDistrictStatistics();
     }
 }

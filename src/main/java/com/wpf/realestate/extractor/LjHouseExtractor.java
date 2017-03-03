@@ -1,13 +1,11 @@
 package com.wpf.realestate.extractor;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wpf.realestate.common.GlobalConfig;
 import com.wpf.realestate.common.GlobalConsts;
 import com.wpf.realestate.data.House;
 import com.wpf.realestate.data.HouseStatus;
-import com.wpf.realestate.data.LjDayData;
 import com.wpf.realestate.provider.LjProvider;
 import com.wpf.realestate.storage.HouseRedisDao;
 import com.wpf.realestate.util.ConfigUtils;
@@ -18,91 +16,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by wenpengfei on 2016/10/28.
  */
-public class LjExtractor {
-    private static final Logger LOG = LoggerFactory.getLogger(LjExtractor.class);
+public class LjHouseExtractor {
+    private static final Logger LOG = LoggerFactory.getLogger(LjHouseExtractor.class);
 
-    private static final int MAX_DIFF_SIZE = 2000;
+    private static final int MAX_DIFF_SIZE = 3000;
+
+    private static final int MAX_HOUSE_DIFF_RETRY = 3;
 
     private static DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
-    private static DateTimeFormatter weekFormatter = DateTimeFormat.forPattern("yyyy/MM/dd");
-
     private HouseRedisDao houseRedisDao;
     private LjProvider provider;
-    private AtomicBoolean isRun;
 
-    public LjExtractor(HouseRedisDao houseRedisDao) {
+    public LjHouseExtractor(HouseRedisDao houseRedisDao) {
         this.houseRedisDao = houseRedisDao;
         provider = new LjProvider();
-        isRun = new AtomicBoolean(false);
     }
 
     public void run() {
-        if (isRun.get()) {
-            LOG.warn("already running");
-            return;
-        }
-        isRun.set(true);
         processHouseInfos();
-        processHouseDiffs();
-        isRun.set(false);
-    }
-
-    public void runStatistics() {
-        processStatistics();
-    }
-
-    public void runWeekStatistics() {
-        try {
-            DateTime now = DateTime.now();
-            DateTime iterDay = now.minusWeeks(1);
-            int sales = 0;
-            int showAmount = 0;
-            int customerAmount = 0;
-            int houseAmount = 0;
-            while (iterDay.compareTo(now) < 0) {
-                String dayStr = formatter.print(iterDay);
-                LjDayData dayData = houseRedisDao.getStatistics(GlobalConsts.LIANJIA_SOURCE, dayStr);
-                if (dayData == null) {
-                    iterDay = iterDay.plusDays(1);
-                    continue;
-                }
-                sales += dayData.getDaySales();
-                showAmount += dayData.getShowAmount();
-                customerAmount += dayData.getCustomAmount();
-                houseAmount += dayData.getHouseAmount();
-                iterDay = iterDay.plusDays(1);
-            }
-            JSONObject weekObj = new JSONObject();
-            weekObj.put("sales", sales);
-            weekObj.put("showAmount", showAmount);
-            weekObj.put("customAmount", customerAmount);
-            weekObj.put("houseAmount", houseAmount);
-
-            String startDayStr = weekFormatter.print(now.minusWeeks(1));
-            String endDayStr = weekFormatter.print(now.minusDays(1));
-            houseRedisDao.addWeekStatistics(GlobalConsts.LIANJIA_SOURCE, startDayStr + "-" + endDayStr, weekObj);
-            LOG.info("end process week statistics start {} end {} data {}", startDayStr, endDayStr, weekObj);
-        } catch (Exception e) {
-            LOG.error("runWeekStatistics", e);
-        }
-    }
-
-    public void processStatistics() {
-        try {
-            LjDayData dayData = provider.getStatistics();
-            DateTime dateTime = DateTime.now();
-            String date = dateTime.toString(formatter);
-            houseRedisDao.addStatistics(date, provider.getSource(), dayData);
-            LOG.info("{} statistics data {}", date, JSON.toJSONString(dayData));
-        } catch (Exception e) {
-            LOG.error("processStatistics", e);
-        }
+        processHouseDiffs(0);
     }
 
     public void processHouseInfos() {
@@ -188,7 +125,7 @@ public class LjExtractor {
         houseRedisDao.addHouses(provider.getSource(), newHouseInfoMap);
     }
 
-    public void processHouseDiffs() {
+    public void processHouseDiffs(int retry) {
         try {
             DateTime now = DateTime.now();
             String nowDateStr = now.toString(formatter);
@@ -205,10 +142,10 @@ public class LjExtractor {
             }
             Set<String> diffSet = lastHouses.keySet();
             diffSet.removeAll(nowHouses.keySet());
-            if (diffSet.size() > MAX_DIFF_SIZE) {
+            if (diffSet.size() > MAX_DIFF_SIZE && retry < MAX_HOUSE_DIFF_RETRY) {
                 LOG.info("{} diff houses too many diff houses must reprocess house infos", diffSet.size());
                 processHouseInfos();
-                processHouseDiffs();
+                processHouseDiffs(retry + 1);
                 return;
             }
             LOG.info("begin process {} diff houses", diffSet.size());

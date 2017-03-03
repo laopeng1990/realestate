@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by laopengwork on 2016/10/30.
@@ -17,8 +18,11 @@ public abstract class BaseTask {
 
     private ScheduledExecutorService executorService;
 
+    private AtomicBoolean isRun;
+
     public BaseTask() {
         executorService = Executors.newSingleThreadScheduledExecutor();
+        isRun = new AtomicBoolean(false);
     }
 
     /**
@@ -39,7 +43,7 @@ public abstract class BaseTask {
             @Override
             public void run() {
                 try {
-                    process();
+                    run();
                 } catch (Exception e) {
                     LOG.error("start task {} error", taskName(), e);
                 }
@@ -60,7 +64,7 @@ public abstract class BaseTask {
                     @Override
                     public void run() {
                         try {
-                            process();
+                            BaseTask.this.run();
                         } catch (Exception e) {
                             LOG.error("start now task {} error", taskName(), e);
                         }
@@ -69,6 +73,16 @@ public abstract class BaseTask {
         );
 
         LOG.info("start task {} right now", taskName());
+    }
+
+    public void run() throws Exception {
+        if (isRun.get()) {
+            LOG.info("{} already running", taskName());
+            return;
+        }
+        isRun.set(true);
+        process();
+        isRun.set(false);
     }
 
     /**

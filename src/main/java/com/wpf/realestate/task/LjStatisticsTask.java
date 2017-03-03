@@ -1,6 +1,6 @@
 package com.wpf.realestate.task;
 
-import com.wpf.realestate.extractor.LjExtractor;
+import com.wpf.realestate.extractor.LjStatisticsExtractor;
 import com.wpf.realestate.storage.HouseRedisDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class LjStatisticsTask extends BaseTask {
 
-    private LjExtractor ljExtractor;
+    private LjStatisticsExtractor ljExtractor;
 
     @Autowired
     public LjStatisticsTask(HouseRedisDao houseRedisDao) {
-        ljExtractor = new LjExtractor(houseRedisDao);
+        ljExtractor = new LjStatisticsExtractor(houseRedisDao);
     }
 
     @Override
@@ -25,6 +25,6 @@ public class LjStatisticsTask extends BaseTask {
 
     @Override
     public void process() {
-        ljExtractor.runStatistics();
+        ljExtractor.run();
     }
 }

@@ -3,6 +3,8 @@ package com.wpf.realestate.data;
 import com.alibaba.fastjson.JSON;
 import org.joda.time.DateTime;
 
+import java.util.List;
+
 /**
  * Created by laopengwork on 2016/10/30.
  */
@@ -37,6 +39,16 @@ public class LjDayData {
     private Double momHouse;
     //当天客源数
     private Integer customAmount;
+    //各区数据
+    private List<LjDistrictDayData> districtDayDataList;
+
+    public List<LjDistrictDayData> getDistrictDayDataList() {
+        return districtDayDataList;
+    }
+
+    public void setDistrictDayDataList(List<LjDistrictDayData> districtDayDataList) {
+        this.districtDayDataList = districtDayDataList;
+    }
 
     public DateTime getDate() {
         return date;
