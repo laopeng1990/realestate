@@ -55,6 +55,7 @@ public class LjHouseExtractor {
                 JSONObject dataObj = provider.getHouseList(offset, pageSize);
                 if (dataObj == null) {
                     LOG.error("null object offset {} page size {}", offset, pageSize);
+                    offset += pageSize;
                     continue;
                 }
                 Integer hasMore = dataObj.getInteger("has_more_data");
