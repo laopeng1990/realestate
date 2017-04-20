@@ -74,6 +74,13 @@ public class LjHouseExtractor {
                     LOG.info("has no more houses offset {}", offset);
                     break;
                 }
+                totalCount = dataObj.getInteger("totalCount");
+                if (totalCount != null) {
+                    if (offset > totalCount) {
+                        LOG.info("offset {} greater than total count {}", offset, totalCount);
+                        break;
+                    }
+                }
             } catch (Exception e) {
                 LOG.error("process while", e);
             }
