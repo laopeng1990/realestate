@@ -122,8 +122,26 @@ public class LjProvider {
         return null;
     }
 
-    public JSONObject getHouseList(int offset, int count) {
+    private void buildPriceRequest(int begin, int end) {
+        StringBuilder sb = new StringBuilder();
+        String priceText = "_";
+        if (begin > 0) {
+            sb.append("bp").append(begin);
+            priceText = begin + priceText;
+        }
+        if (end > 0) {
+            sb.append("ep").append(end);
+            priceText = priceText + end;
+        }
+        String priceRequest = sb.toString();
+        houseListParams.put("priceRequest", priceRequest);
+        houseListParams.put("condition", priceRequest);
+        houseListParams.put("housePriceText", priceText);
+    }
+
+    public JSONObject getHouseList(int offset, int count, int bpPrice, int epPrice) {
         try {
+            buildPriceRequest(bpPrice, epPrice);
             houseListParams.put("limit_offset", String.valueOf(offset));
             houseListParams.put("limit_count", String.valueOf(count));
             String response = getResponse(LJ_HOUSE_LIST, houseListParams, headers);
@@ -302,7 +320,7 @@ public class LjProvider {
                     .headers(headers).connectTimeout(2000).readTimeout(2000);
             for (int i = 0; i < 4; ++i) {
                 try {
-                    Thread.sleep(200 + i * 500);
+                    Thread.sleep(50 + i * 200);
                     response = requestBuilder.build().execute();
                 } catch (Exception e) {
                     LOG.error("http exception", e);
@@ -368,6 +386,6 @@ public class LjProvider {
 
     public static void main(String[] args) {
         LjProvider provider = new LjProvider();
-        provider.getDistrictStatistics();
+        provider.getHouseList(100, 20, 0, 3000);
     }
 }

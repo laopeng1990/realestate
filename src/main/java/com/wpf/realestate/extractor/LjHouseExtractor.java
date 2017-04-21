@@ -27,6 +27,10 @@ public class LjHouseExtractor {
 
     private static final int MAX_HOUSE_DIFF_RETRY = 3;
 
+    private static final int MAX_LIMIT_OFFSET = 2000;
+
+    private static final int MAX_BEGIN_PRICE = 3000;
+
     private static DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     private HouseRedisDao houseRedisDao;
@@ -46,66 +50,60 @@ public class LjHouseExtractor {
         Integer totalCount = provider.getTotalSize();
         LOG.info("total count {}", totalCount);
         int pageSize = ConfigUtils.getInt(GlobalConfig.config, GlobalConfig.PROVIDER_LJ_SIZE);
-        int offset = 0;
         DateTime dateTime = DateTime.now();
         String date = dateTime.toString(formatter);
-        List<Integer> nullOffsets = new ArrayList<>();
-        while (true) {
-            try {
-                JSONObject dataObj = provider.getHouseList(offset, pageSize);
+        List<Integer> nullBgPrices = new ArrayList<>();
+        Integer realTotalCount = 0;
+        int bgPrice = 10;
+        int priceInterval = 5;
+        while (realTotalCount < totalCount) {
+            int offset = 0;
+            Integer priceTotalCount = null;
+            int priceRealCount = 0;
+            boolean hasMore = true;
+            boolean hasMaxPrice = false;
+            while ((priceTotalCount == null) || (priceRealCount < priceTotalCount && hasMore)) {
+                JSONObject dataObj;
+                if (bgPrice < MAX_BEGIN_PRICE) {
+                    dataObj = provider.getHouseList(offset, pageSize, bgPrice, bgPrice + priceInterval);
+                } else {
+                    dataObj = provider.getHouseList(offset, pageSize, bgPrice, 0);
+                    hasMaxPrice = true;
+                }
                 if (dataObj == null) {
-                    LOG.error("null object offset {} page size {}", offset, pageSize);
-                    offset += pageSize;
-                    continue;
-                }
-                Integer hasMore = dataObj.getInteger("has_more_data");
-                JSONArray dataArray = dataObj.getJSONArray("list");
-                if (dataArray == null) {
-                    LOG.error("null data array offset {} count {} response {}", offset, pageSize, dataObj);
-                    if (hasMore == 0) {
-                        nullOffsets.add(offset);
-                        offset += pageSize;
-                    }
-                    continue;
-                }
-                //get price list
-                processDataArray(dataArray, offset, date);
-                offset += pageSize;
-                if (hasMore == 0) {
-                    LOG.info("has no more houses offset {}", offset);
+                    nullBgPrices.add(bgPrice);
+                    bgPrice += priceInterval;
+                    LOG.warn("null data obj offset {} bgPrice {}", offset, bgPrice);
                     break;
                 }
-                totalCount = dataObj.getInteger("totalCount");
-                if (totalCount != null) {
-                    if (offset > totalCount) {
-                        LOG.info("offset {} greater than total count {}", offset, totalCount);
+                priceTotalCount = dataObj.getInteger("total_count");
+                if (priceTotalCount != null && priceTotalCount > MAX_LIMIT_OFFSET) {
+                    if (priceInterval > 1) {
+                        bgPrice -= priceInterval;
+                        priceInterval /= 2;
                         break;
                     }
+                    LOG.warn("bigger than max offset bgPrice {} priceInterval {}", bgPrice, priceInterval);
                 }
-            } catch (Exception e) {
-                LOG.error("process while", e);
-            }
-        }
-
-        for (Integer nullOffset : nullOffsets) {
-            try {
-                JSONObject dataObj = provider.getHouseList(nullOffset, pageSize);
-                LOG.info("process null offset {] data {}", nullOffset, dataObj);
-                if (dataObj == null) {
-                    continue;
-                }
+                hasMore = dataObj.getBooleanValue("has_more_data");
+                int returnCount = dataObj.getIntValue("return_count");
                 JSONArray dataArray = dataObj.getJSONArray("list");
-                if (dataArray == null) {
-                    continue;
-                }
-                processDataArray(dataArray, offset, date);
-            } catch (Exception e) {
-                LOG.error("for nullOffset", e);
+                processDataArray(dataArray, date);
+                offset += pageSize;
+                priceRealCount += returnCount;
+                LOG.info("process bg price {} price interval {} total size {} offset {} size {}",
+                        bgPrice, priceInterval, priceTotalCount, offset, dataArray.size());
+            }
+            bgPrice += priceInterval;
+            realTotalCount += priceRealCount;
+            LOG.info("real count {}", realTotalCount);
+            if (hasMaxPrice) {
+                break;
             }
         }
     }
 
-    private void processDataArray(JSONArray dataArray, int offset, String date) {
+    private void processDataArray(JSONArray dataArray, String date) {
         int nSize = dataArray.size();
         Map<String, String> prices = new HashMap<>();
         List<String> houseIds = new ArrayList<>();
@@ -115,7 +113,6 @@ public class LjHouseExtractor {
             prices.put(houseCode, itemObj.getString("price"));
             houseIds.add(houseCode);
         }
-        LOG.info("get {} house info offset {}", prices.size(), offset);
         houseRedisDao.addDayPrices(provider.getSource(), date, prices);
         //get price detail
         List<Object> houseInfos = houseRedisDao.getHouses(provider.getSource(), houseIds);
