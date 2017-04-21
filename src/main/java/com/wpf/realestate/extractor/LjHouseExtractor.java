@@ -104,6 +104,9 @@ public class LjHouseExtractor {
     }
 
     private void processDataArray(JSONArray dataArray, String date) {
+        if(dataArray == null || dataArray.isEmpty()) {
+            return;
+        }
         int nSize = dataArray.size();
         Map<String, String> prices = new HashMap<>();
         List<String> houseIds = new ArrayList<>();
