@@ -92,7 +92,7 @@ public class LjHouseExtractor {
                 offset += pageSize;
                 priceRealCount += returnCount;
                 LOG.info("process bg price {} price interval {} total size {} offset {} size {}",
-                        bgPrice, priceInterval, priceTotalCount, offset, dataArray.size());
+                        bgPrice, priceInterval, priceTotalCount, offset, dataArray == null ? 0 : dataArray.size());
             }
             bgPrice += priceInterval;
             realTotalCount += priceRealCount;
